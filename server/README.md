@@ -4,7 +4,7 @@ This directory contains scripts to serve multiple LLMs using vLLM's OpenAI-compa
 
 ## Models
 
-1. **meta-llama/Llama-3.2-3B** - Served on port 8368
+1. **meta-llama/Llama-3.1-8B-Instruct** - Served on port 8368
 2. **nvidia/Llama-3.3-70B-Instruct-FP8** - Served on port 8369
 
 ## Prerequisites
@@ -44,8 +44,8 @@ chmod +x stop_servers.sh
 ### Check Logs
 
 ```bash
-# View logs for Llama 3.2 3B
-tail -f ../vllm_logs/llama-3.2-3b.log
+# View logs for Llama 3.1 8B
+tail -f ../vllm_logs/llama-3.1-8b.log
 
 # View logs for Llama 3.3 70B FP8
 tail -f ../vllm_logs/llama-3.3-70b-fp8.log
@@ -68,7 +68,7 @@ curl http://localhost:8368/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer token-abc123" \
   -d '{
-    "model": "meta-llama/Llama-3.2-3B",
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
     "messages": [
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Hello!"}
@@ -89,7 +89,7 @@ python test_servers.py
 The default API key is `token-abc123`. You can change it in `serve_models.sh` by modifying the `--api-key` parameter.
 
 ### Tensor Parallelism
-The 70B model uses `--tensor-parallel-size 2` for multi-GPU inference on GPUs 2-3. The 3B model runs on GPU 0. This configuration is optimized for 4x H100 GPUs.
+The 70B model uses `--tensor-parallel-size 2` for multi-GPU inference on GPUs 2-3. The 8B model runs on GPU 0. This configuration is optimized for 4x H100 GPUs.
 
 ### Memory and Performance
 Additional optional parameters you can add to `serve_models.sh`:
@@ -108,14 +108,14 @@ Example using the official OpenAI Python client:
 ```python
 from openai import OpenAI
 
-# Client for Llama 3.2 3B
+# Client for Llama 3.1 8B
 client = OpenAI(
     api_key="token-abc123",
     base_url="http://localhost:8368/v1",
 )
 
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.2-3B",
+    model="meta-llama/Llama-3.1-8B-Instruct",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "What is machine learning?"}

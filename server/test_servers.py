@@ -6,7 +6,7 @@ Example client to test the vLLM OpenAI-compatible servers.
 from openai import OpenAI
 
 # Configure clients for each model
-llama_3_2_client = OpenAI(
+llama_3_1_client = OpenAI(
     api_key="token-abc123",
     base_url="http://localhost:8368/v1",
 )
@@ -47,8 +47,8 @@ def main():
     print("\nvLLM Multi-Model Server Test")
     print("=" * 70)
 
-    # Test Llama 3.2 3B Instruct
-    test_model(llama_3_2_client, "meta-llama/Llama-3.2-3B-Instruct", 8368)
+    # Test Llama 3.1 8B Instruct
+    test_model(llama_3_1_client, "meta-llama/Llama-3.1-8B-Instruct", 8368)
 
     # Test Llama 3.3 70B FP8
     test_model(llama_3_3_client, "nvidia/Llama-3.3-70B-Instruct-FP8", 8369)
