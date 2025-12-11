@@ -60,7 +60,7 @@ class LargeModelClient(BaseVLLMClient):
             response_format=response_format,
         )
 
-        logger.info(f"Classification response: {response[:100]}...")
+        logger.info(f"Classification response: {response}")
         return response
 
     def generate_clarifying_question(
@@ -88,7 +88,7 @@ class LargeModelClient(BaseVLLMClient):
             response_format=response_format,
         )
 
-        logger.info(f"Clarification generation response: {response[:100]}...")
+        logger.info(f"Clarification generation response: {response}")
         return response
 
     def validate_clarification(

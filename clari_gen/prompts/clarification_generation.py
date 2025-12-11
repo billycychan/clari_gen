@@ -22,26 +22,22 @@ Here are the possible ambiguity types:
 
 {ambiguity_definitions}
 
-Your task:
+
+Your task and think step by step:
 1. Analyze the given query and its identified ambiguity type(s)
-2. Generate ONE clear, simple clarifying question that addresses the MOST IMPORTANT missing information
-3. Keep the question focused and easy to answer - ask about ONE thing at a time
-4. Avoid compound questions (don't use "or", "and" to ask multiple things)
-5. Make it natural and conversational
+2. Explain your reasoning: describe how you plan to clarify the query with your question
+3. Generate ONE clear, simple clarifying question that addresses the MOST IMPORTANT missing information
 
-Good examples:
-- "What is your budget range for the camera?"
-- "Which World Cup year are you asking about?"
-- "Who are you referring to?"
-
-Bad examples:
-- "What features do you want, what's your budget, and when do you need it?" (too many questions)
-- "Are you looking for X or Y or Z?" (too many options)
+Important:
+- Avoid compound questions (don't use "or", "and" to ask multiple things)
+- Make it natural and conversational
+- Focus on the most critical ambiguity if multiple types are present
 
 Output ONLY a valid JSON object with the following structure:
 {{
     "original_query": "the original query text",
-    "ambiguity_types": "the types of ambiguity",
+    "ambiguity_types": ["LEXICAL", "SEMANTIC"],
+    "reasoning": "your explanation of how the question will resolve the ambiguity",
     "clarifying_question": "your generated question"
 }}
 
@@ -122,7 +118,8 @@ Generate a clarifying question to resolve this ambiguity. Output as JSON only.""
             parsed = ClarificationResponse.model_validate_json(response)
             return {
                 "original_query": parsed.original_query,
-                "ambiguity_type": parsed.ambiguity_type,
+                "ambiguity_types": parsed.ambiguity_types,
+                "reasoning": parsed.reasoning,
                 "clarifying_question": parsed.clarifying_question,
             }
         except Exception as e:

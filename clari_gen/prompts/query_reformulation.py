@@ -6,7 +6,7 @@ class QueryReformulationPrompt:
 
     SYSTEM_PROMPT = """You are an expert at reformulating ambiguous queries into clear, unambiguous versions.
 
-Your task:
+Your task and think step by step:
 1. Review the original ambiguous query
 2. Review the ambiguity type and clarifying question
 3. Review the user's clarification

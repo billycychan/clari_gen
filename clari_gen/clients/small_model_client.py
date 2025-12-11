@@ -1,4 +1,4 @@
-"""Client for the small model (Llama-3.1-8B) - ambiguity detection."""
+"""Client for the small model (Llama-3.1-8B) - ambiguity classification."""
 
 from typing import List, Optional, Type
 import logging
@@ -10,11 +10,11 @@ logger = logging.getLogger(__name__)
 
 
 class SmallModelClient(BaseVLLMClient):
-    """Client for the 8B model used for ambiguity detection."""
+    """Client for the 8B model used for ambiguity classification."""
 
-    # Default temperature for ambiguity detection (low for consistency)
-    DEFAULT_TEMPERATURE = 0.1
-    DEFAULT_MAX_TOKENS = 150
+    # Default temperature for ambiguity classification (low-medium for consistent classification)
+    DEFAULT_TEMPERATURE = 0.3
+    DEFAULT_MAX_TOKENS = 1024
 
     def __init__(
         self, base_url: str = "http://localhost:8368/v1", api_key: str = "token-abc123"
@@ -22,7 +22,7 @@ class SmallModelClient(BaseVLLMClient):
         """Initialize the small model client.
 
         Args:
-            base_url: The base URL of the 3B model server
+            base_url: The base URL of the 8B model server
             api_key: API key for authentication
         """
         super().__init__(
@@ -31,22 +31,22 @@ class SmallModelClient(BaseVLLMClient):
             model_name="meta-llama/Llama-3.1-8B-Instruct",
         )
 
-    def detect_ambiguity(
+    def classify_ambiguity(
         self, messages: List[dict], response_format: Optional[Type[BaseModel]] = None
     ) -> str:
-        """Detect if a query is ambiguous.
+        """Classify the type of ambiguity in a query (or return NONE if not ambiguous).
 
         Args:
             messages: List of message dicts with system and user prompts
             response_format: Optional Pydantic model for structured JSON output
 
         Returns:
-            The model's response (JSON string with is_ambiguous and confidence)
+            The model's response (JSON string with ambiguity_types and reasoning)
 
         Raises:
             Exception: If the API call fails
         """
-        logger.info("Detecting ambiguity with Samller model")
+        logger.info("Classifying ambiguity with 8B model")
 
         response = self.generate(
             messages=messages,
@@ -56,5 +56,5 @@ class SmallModelClient(BaseVLLMClient):
             response_format=response_format,
         )
 
-        logger.info(f"Ambiguity detection response: {response.strip()}")
+        logger.info(f"Ambiguity classification response: {response}")
         return response

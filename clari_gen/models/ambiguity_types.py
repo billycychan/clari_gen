@@ -11,10 +11,7 @@ class AmbiguityType(str, Enum):
     CONTRADICTION = "CONTRADICTION"
     LEXICAL = "LEXICAL"
     SEMANTIC = "SEMANTIC"
-    WHO = "WHO"
-    WHEN = "WHEN"
-    WHERE = "WHERE"
-    WHAT = "WHAT"
+    REFERENCE = "REFERENCE"
     NONE = "NONE"  # Query is not ambiguous
 
 
@@ -36,21 +33,9 @@ AMBIGUITY_DEFINITIONS: Dict[AmbiguityType, Dict[str, str]] = {
         "explanation": "Query lacks of context leading multiple interpretations",
         "example": "When did he land on the moon?",
     },
-    AmbiguityType.WHO: {
-        "explanation": "Query output contains confusion due to missing personal elements",
-        "example": "Suggest me some gifts for my mother.",
-    },
-    AmbiguityType.WHEN: {
-        "explanation": "Query output contains confusion due to missing temporal elements",
-        "example": "How many goals did Argentina score in the World Cup?",
-    },
-    AmbiguityType.WHERE: {
-        "explanation": "Query output contains confusion due to missing spatial elements",
-        "example": "Tell me how to reach New York.",
-    },
-    AmbiguityType.WHAT: {
-        "explanation": "Query output contains confusion due to missing task-specific elements",
-        "example": "Real name of gwen stacy in spiderman?",
+    AmbiguityType.REFERENCE: {
+        "explanation": "Query contains ambiguous references (pronouns, temporal, spatial, or object references) where multiple interpretations are possible",
+        "example": "John told Mark he won the race. (who won?)",
     },
 }
 

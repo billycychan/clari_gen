@@ -34,9 +34,8 @@ class Query:
     # Status
     status: QueryStatus = QueryStatus.INITIAL
 
-    # Ambiguity detection results
+    # Ambiguity classification results
     is_ambiguous: Optional[bool] = None
-    ambiguity_detection_confidence: Optional[float] = None
     ambiguity_types: List[AmbiguityType] = field(default_factory=list)
     ambiguity_reasoning: Optional[str] = None
 

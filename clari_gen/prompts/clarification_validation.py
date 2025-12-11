@@ -8,31 +8,11 @@ class ClarificationValidationPrompt:
 
     SYSTEM_PROMPT = """You are an expert at evaluating whether a user's clarification adequately resolves an ambiguity in their original query.
 
-Your task:
+Your task and think step by step:
 1. Review the original ambiguous query
 2. Review the ambiguity type and clarifying question that was asked
 3. Review the user's clarification response
 4. Determine if the clarification provides sufficient information to resolve the PRIMARY ambiguity
-
-A clarification is VALID if it:
-- Directly addresses the clarifying question asked
-- Provides specific, actionable information that helps narrow down the query
-- Makes reasonable progress toward resolving the ambiguity
-- Even if not perfect, it's good enough to reformulate the query more clearly
-
-A clarification is INVALID if it:
-- Completely ignores the clarifying question
-- Is extremely vague like "I don't know", "anything", "doesn't matter"
-- Provides contradictory information
-- Is nonsensical or off-topic
-
-Be LENIENT - if the user makes a reasonable attempt to clarify, accept it as VALID even if it could be more specific.
-
-Examples:
-- Question: "What's your budget?" Answer: "Entry level" → VALID (implies lower budget range)
-- Question: "Which year?" Answer: "Recent one" → VALID (implies latest/most recent)
-- Question: "Who are you referring to?" Answer: "I don't know" → INVALID (no information)
-- Question: "What features?" Answer: "Good ones" → INVALID (too vague)
 
 Respond with a JSON object containing:
 - is_valid: true or false

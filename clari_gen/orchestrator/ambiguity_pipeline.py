@@ -6,7 +6,6 @@ from typing import Optional, Callable
 from ..models import Query, QueryStatus, AmbiguityType
 from ..clients import SmallModelClient, LargeModelClient
 from ..prompts import (
-    AmbiguityDetectionPrompt,
     AmbiguityClassificationPrompt,
     ClarificationGenerationPrompt,
     ClarificationValidationPrompt,
@@ -28,12 +27,10 @@ class AmbiguityPipeline:
         """Initialize the ambiguity pipeline.
 
         Args:
-            small_model_client: Client for the 7B model (ambiguity detection)
-            large_model_client: Client for the 70B model (classification, clarification, etc.)
+            small_model_client: Client for the 8B model (ambiguity classification)
+            large_model_client: Client for the 70B model (clarification generation, validation, reformulation)
             max_clarification_attempts: Maximum number of times to ask for clarification
-                                 most NOT_AMBIGUOUS predictions are verified by the large model.
         """
-        # self.small_model = small_model_client or SmallModelClient()
         self.small_model = small_model_client or SmallModelClient()
         self.large_model = large_model_client or LargeModelClient()
         self.max_clarification_attempts = max_clarification_attempts
@@ -60,17 +57,20 @@ class AmbiguityPipeline:
         logger.info(f"Processing query: {query_text[:50]}...")
 
         try:
-            # Step 1: Detect if query is ambiguous
-            query = self._detect_ambiguity(query)
+            # Step 1: Classify ambiguity (returns NONE if not ambiguous)
+            query = self._classify_ambiguity(query)
 
-            if not query.is_ambiguous:
+            # Check if query is not ambiguous (NONE type)
+            if AmbiguityType.NONE in query.ambiguity_types:
                 # Query is clear - return as-is
+                query.is_ambiguous = False
                 query.status = QueryStatus.COMPLETED
-                logger.info("Query is not ambiguous - returning original")
+                logger.info("Query is not ambiguous (NONE type) - returning original")
                 return query
 
-            # Query is ambiguous - proceed with classification
-            query = self._classify_ambiguity(query)
+            # Query is ambiguous
+            query.is_ambiguous = True
+            query.status = QueryStatus.AMBIGUOUS
 
             # Generate clarifying question
             query = self._generate_clarifying_question(query)
@@ -133,49 +133,20 @@ class AmbiguityPipeline:
             logger.error(f"Error processing query: {e}", exc_info=True)
             return query
 
-    def _detect_ambiguity(self, query: Query) -> Query:
-        """Detect if the query is ambiguous using the small model.
+    def _classify_ambiguity(self, query: Query) -> Query:
+        """Classify the type of ambiguity using the small model.
 
         Args:
             query: Query object to process
 
         Returns:
-            Updated Query object with ambiguity detection results
+            Updated Query object with ambiguity classification (may include NONE if not ambiguous)
         """
         query.status = QueryStatus.CHECKING_AMBIGUITY
-        logger.info("Step 1: Detecting ambiguity")
-
-        messages = AmbiguityDetectionPrompt.create_messages(query.original_query)
-        response = self.small_model.detect_ambiguity(
-            messages,
-            response_format=AmbiguityDetectionPrompt.get_response_schema(),
-        )
-
-        is_ambiguous = AmbiguityDetectionPrompt.parse_response(response)
-        query.is_ambiguous = is_ambiguous
-
-        if query.is_ambiguous:
-            query.status = QueryStatus.AMBIGUOUS
-            logger.info("Query detected as AMBIGUOUS")
-        else:
-            query.status = QueryStatus.NOT_AMBIGUOUS
-            logger.info("Query detected as NOT_AMBIGUOUS")
-
-        return query
-
-    def _classify_ambiguity(self, query: Query) -> Query:
-        """Classify the type of ambiguity using the large model.
-
-        Args:
-            query: Query object to process
-
-        Returns:
-            Updated Query object with ambiguity classification
-        """
-        logger.info("Step 2: Classifying ambiguity type(s)")
+        logger.info("Step 1: Classifying ambiguity type(s)")
 
         messages = AmbiguityClassificationPrompt.create_messages(query.original_query)
-        response = self.large_model.classify_ambiguity(
+        response = self.small_model.classify_ambiguity(
             messages,
             response_format=AmbiguityClassificationPrompt.get_response_schema(),
         )
@@ -201,7 +172,7 @@ class AmbiguityPipeline:
         Returns:
             Updated Query object with clarifying question
         """
-        logger.info("Step 3: Generating clarifying question")
+        logger.info("Step 2: Generating clarifying question")
 
         ambiguity_types_strs = [t.value for t in query.ambiguity_types]
         messages = ClarificationGenerationPrompt.create_messages(
@@ -231,7 +202,7 @@ class AmbiguityPipeline:
             Updated Query object with validation results
         """
         query.status = QueryStatus.VALIDATING_CLARIFICATION
-        logger.info("Step 4: Validating user clarification")
+        logger.info("Step 3: Validating user clarification")
 
         ambiguity_types_strs = [t.value for t in query.ambiguity_types]
         messages = ClarificationValidationPrompt.create_messages(
@@ -268,7 +239,7 @@ class AmbiguityPipeline:
             Updated Query object with reformulated query
         """
         query.status = QueryStatus.REFORMULATING
-        logger.info("Step 5: Reformulating query")
+        logger.info("Step 4: Reformulating query")
 
         ambiguity_types_strs = [t.value for t in query.ambiguity_types]
         messages = QueryReformulationPrompt.create_messages(
