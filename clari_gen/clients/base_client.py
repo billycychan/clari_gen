@@ -51,7 +51,8 @@ class BaseVLLMClient:
             max_tokens: Maximum tokens to generate
             top_p: Nucleus sampling parameter
             stop: Optional list of stop sequences
-            response_format: Optional Pydantic model for structured output (JSON schema)
+            response_format: Optional Pydantic model for structured JSON output.
+                           Uses vLLM's guided_json for guaranteed schema compliance.
 
         Returns:
             The generated text content
@@ -76,19 +77,12 @@ class BaseVLLMClient:
             if stop is not None:
                 api_kwargs["stop"] = stop
 
-            # Add structured output format if provided
+            # Add guided_json for structured output if provided
             if response_format is not None:
                 json_schema = response_format.model_json_schema()
-                api_kwargs["response_format"] = {
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": response_format.__name__,
-                        "schema": json_schema,
-                        "strict": True,
-                    },
-                }
+                api_kwargs["extra_body"] = {"guided_json": json_schema}
                 logger.info(
-                    f"Using structured output schema: {response_format.__name__}"
+                    f"Using vLLM guided_json for schema: {response_format.__name__}"
                 )
                 logger.debug(f"JSON Schema: {json_schema}")
 
@@ -112,7 +106,7 @@ class BaseVLLMClient:
         top_p: float = 0.95,
         stop: Optional[List[str]] = None,
     ) -> T:
-        """Generate a structured completion from the model using JSON schema.
+        """Generate a structured completion from the model using vLLM's guided_json.
 
         Args:
             messages: List of message dicts in OpenAI format

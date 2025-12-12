@@ -42,7 +42,7 @@ class LargeModelClient(BaseVLLMClient):
 
         Args:
             messages: List of message dicts with system and user prompts
-            response_format: Optional Pydantic model for structured output
+            response_format: Optional Pydantic model for structured output using guided_json
 
         Returns:
             The model's response with ambiguity type and reasoning (as JSON if schema provided)
@@ -70,7 +70,7 @@ class LargeModelClient(BaseVLLMClient):
 
         Args:
             messages: List of message dicts with system and user prompts
-            response_format: Optional Pydantic model for structured output
+            response_format: Optional Pydantic model for structured output using guided_json
 
         Returns:
             The model's response with JSON containing clarifying question
@@ -98,7 +98,7 @@ class LargeModelClient(BaseVLLMClient):
 
         Args:
             messages: List of message dicts with system and user prompts
-            response_format: Optional Pydantic model for structured output
+            response_format: Optional Pydantic model for structured output using guided_json
 
         Returns:
             The model's response with validity and explanation (as JSON if schema provided)

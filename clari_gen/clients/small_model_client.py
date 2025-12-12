@@ -38,7 +38,7 @@ class SmallModelClient(BaseVLLMClient):
 
         Args:
             messages: List of message dicts with system and user prompts
-            response_format: Optional Pydantic model for structured JSON output
+            response_format: Optional Pydantic model for structured JSON output using guided_json
 
         Returns:
             The model's response (JSON string with ambiguity_types and reasoning)
