@@ -1,13 +1,17 @@
 """Prompt templates for the ambiguity detection and clarification system."""
 
 from .binary_detection import BinaryDetectionPrompt
-from .clarification_generation import ClarificationGenerationPrompt
 from .query_reformulation import QueryReformulationPrompt
 from .clarification_validation import ClarificationValidationPrompt
+from .clarification_generation import (
+    ClarificationATStandardPrompt,
+    ClarificationATCoTPrompt,
+)
 
 __all__ = [
     "BinaryDetectionPrompt",
-    "ClarificationGenerationPrompt",
+    "ClarificationATStandardPrompt",
+    "ClarificationATCoTPrompt",
     "QueryReformulationPrompt",
     "ClarificationValidationPrompt",
 ]

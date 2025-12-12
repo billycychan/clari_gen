@@ -188,6 +188,14 @@ Examples:
         help="Maximum clarification attempts (default: 3)",
     )
 
+    parser.add_argument(
+        "--clarification-strategy",
+        type=str,
+        default="at_standard",
+        choices=["at_standard", "at_cot"],
+        help="Strategy for generating clarifying questions: 'at_standard' (with ambiguity types) or 'at_cot' (with chain-of-thought reasoning) (default: at_standard)",
+    )
+
     args = parser.parse_args()
 
     # Setup logging
@@ -197,6 +205,7 @@ Examples:
     # Load configuration
     config = Config.default()
     config.pipeline.max_clarification_attempts = args.max_attempts
+    config.pipeline.clarification_strategy = args.clarification_strategy
 
     # Initialize clients
     small_client = SmallModelClient(
@@ -214,6 +223,7 @@ Examples:
         small_model_client=small_client,
         large_model_client=large_client,
         max_clarification_attempts=config.pipeline.max_clarification_attempts,
+        clarification_strategy=config.pipeline.clarification_strategy,
     )
 
     # Route to appropriate mode

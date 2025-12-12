@@ -7,15 +7,7 @@ from ..models import Query, QueryStatus, AmbiguityType
 from ..clients import SmallModelClient, LargeModelClient
 from ..prompts import (
     BinaryDetectionPrompt,
-    ClarificationGenerationPrompt,
-    ClarificationValidationPrompt,
-    QueryReformulationPrompt,
-)
-from ..prompts.clarification_generation import (
-    BinaryDetectionPrompt,
-    ClarificationStandardPrompt,
     ClarificationATStandardPrompt,
-    ClarificationCoTPrompt,
     ClarificationATCoTPrompt,
     ClarificationValidationPrompt,
     QueryReformulationPrompt,
@@ -32,6 +24,7 @@ class AmbiguityPipeline:
         small_model_client: Optional[SmallModelClient] = None,
         large_model_client: Optional[LargeModelClient] = None,
         max_clarification_attempts: int = 3,
+        clarification_strategy: str = "at_standard",
     ):
         """Initialize the ambiguity pipeline.
 
@@ -39,12 +32,26 @@ class AmbiguityPipeline:
             small_model_client: Client for the 8B model (binary ambiguity detection)
             large_model_client: Client for the 70B model (clarification with classification, validation, reformulation)
             max_clarification_attempts: Maximum number of times to ask for clarification
+            clarification_strategy: Strategy for clarification generation ("at_standard" or "at_cot")
         """
         self.small_model = small_model_client or SmallModelClient()
         self.large_model = large_model_client or LargeModelClient()
         self.max_clarification_attempts = max_clarification_attempts
+        self.clarification_strategy = clarification_strategy
 
-        logger.info(f"Initialized AmbiguityPipeline")
+        # Select the appropriate prompt class based on strategy
+        if clarification_strategy == "at_cot":
+            self.clarification_prompt_class = ClarificationATCoTPrompt
+        elif clarification_strategy == "at_standard":
+            self.clarification_prompt_class = ClarificationATStandardPrompt
+        else:
+            raise ValueError(
+                f"Invalid clarification strategy: {clarification_strategy}. Must be 'at_standard' or 'at_cot'"
+            )
+
+        logger.info(
+            f"Initialized AmbiguityPipeline with clarification strategy: {clarification_strategy}"
+        )
 
     def process_query(
         self,
@@ -178,16 +185,16 @@ class AmbiguityPipeline:
             Updated Query object with ambiguity_types, reasoning, and clarifying_question
         """
         logger.info(
-            "Step 2: Generating clarifying question with embedded classification"
+            f"Step 2: Generating clarifying question with embedded classification (strategy: {self.clarification_strategy})"
         )
 
-        messages = ClarificationATStandardPrompt.create_messages(query.original_query)
+        messages = self.clarification_prompt_class.create_messages(query.original_query)
         response = self.large_model.generate_clarification(
             messages,
-            response_format=ClarificationATStandardPrompt.get_response_schema(),
+            response_format=self.clarification_prompt_class.get_response_schema(),
         )
 
-        data = ClarificationATStandardPrompt.parse_response(response)
+        data = self.clarification_prompt_class.parse_response(response)
 
         # Populate ambiguity types from the generation response
         query.ambiguity_types = [AmbiguityType[t] for t in data["ambiguity_types"]]

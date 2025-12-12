@@ -37,6 +37,7 @@ class PipelineConfig:
     """Configuration for the pipeline behavior."""
 
     max_clarification_attempts: int = 3
+    clarification_strategy: str = "at_standard"  # Options: "at_standard", "at_cot"
     log_level: str = "INFO"
     log_file: str = None
 
@@ -46,6 +47,9 @@ class PipelineConfig:
         return cls(
             max_clarification_attempts=int(
                 os.getenv("MAX_CLARIFICATION_ATTEMPTS", cls.max_clarification_attempts)
+            ),
+            clarification_strategy=os.getenv(
+                "CLARIFICATION_STRATEGY", cls.clarification_strategy
             ),
             log_level=os.getenv("LOG_LEVEL", cls.log_level),
             log_file=os.getenv("LOG_FILE", cls.log_file),
