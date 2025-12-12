@@ -1,4 +1,4 @@
-"""Client for the large model (Llama-3.3-70B) - classification, clarification, validation, reformulation."""
+"""Client for the large model (Llama-3.3-70B) - clarification with embedded classification, validation, reformulation."""
 
 from typing import List, Type
 from pydantic import BaseModel
@@ -10,10 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class LargeModelClient(BaseVLLMClient):
-    """Client for the 70B model used for classification, clarification, validation, and reformulation."""
+    """Client for the 70B model used for clarification (with classification), validation, and reformulation."""
 
     # Temperature settings for different tasks
-    CLASSIFICATION_TEMPERATURE = 0.3  # Low for consistent classification
     CLARIFICATION_TEMPERATURE = 0.7  # Higher for natural question generation
     VALIDATION_TEMPERATURE = 0.3  # Low for consistent validation
     REFORMULATION_TEMPERATURE = 0.7  # Higher for natural query reformulation
@@ -35,10 +34,47 @@ class LargeModelClient(BaseVLLMClient):
             model_name="nvidia/Llama-3.3-70B-Instruct-FP8",
         )
 
+    def generate_clarification(
+        self, messages: List[dict], response_format: Type[BaseModel] = None
+    ) -> str:
+        """Generate a clarifying question with embedded ambiguity classification.
+
+        This method now performs both ambiguity type classification and clarifying question generation
+        in a single call to the large model.
+
+        Args:
+            messages: List of message dicts with system and user prompts
+            response_format: Optional Pydantic model for structured output using guided_json
+
+        Returns:
+            The model's response with JSON containing ambiguity_types, reasoning, and clarifying_question
+
+        Raises:
+            Exception: If the API call fails
+        """
+        logger.info(
+            "Generating clarification with embedded classification using 70B model"
+        )
+
+        response = self.generate(
+            messages=messages,
+            temperature=self.CLARIFICATION_TEMPERATURE,
+            max_tokens=self.DEFAULT_MAX_TOKENS,
+            top_p=0.95,
+            response_format=response_format,
+        )
+
+        logger.info(f"Clarification generation response: {response}")
+        return response
+
+    # Keep old method names for backward compatibility with evaluation scripts
     def classify_ambiguity(
         self, messages: List[dict], response_format: Type[BaseModel] = None
     ) -> str:
         """Classify the type of ambiguity in a query.
+
+        DEPRECATED: This method is kept for backward compatibility with evaluation scripts.
+        Use generate_clarification() for the main pipeline (which includes classification).
 
         Args:
             messages: List of message dicts with system and user prompts
@@ -54,7 +90,7 @@ class LargeModelClient(BaseVLLMClient):
 
         response = self.generate(
             messages=messages,
-            temperature=self.CLASSIFICATION_TEMPERATURE,
+            temperature=0.3,
             max_tokens=self.DEFAULT_MAX_TOKENS,
             top_p=0.95,
             response_format=response_format,
@@ -67,6 +103,9 @@ class LargeModelClient(BaseVLLMClient):
         self, messages: List[dict], response_format: Type[BaseModel] = None
     ) -> str:
         """Generate a clarifying question for an ambiguous query.
+
+        DEPRECATED: This method is kept for backward compatibility.
+        Use generate_clarification() instead (which includes classification).
 
         Args:
             messages: List of message dicts with system and user prompts

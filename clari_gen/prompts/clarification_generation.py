@@ -5,75 +5,113 @@ from ..models.structured_schemas import ClarificationResponse
 
 
 class ClarificationGenerationPrompt:
-    """Generates prompts for creating clarifying questions."""
+    """Generates prompts for creating clarifying questions with embedded ambiguity classification."""
 
     @staticmethod
     def create_system_prompt() -> str:
-        """Create the system prompt for clarification generation.
+        """Create the system prompt for clarification generation with classification.
 
         Returns:
             System prompt string
         """
         ambiguity_definitions = format_ambiguity_definitions_for_prompt()
 
-        return f"""You are an expert at generating clarifying questions for ambiguous user queries in an information-seeking system.
+        return f"""You are an expert at analyzing ambiguous user queries and generating clarifying questions for an information-seeking system.
 
 Here are the possible ambiguity types:
 
 {ambiguity_definitions}
 
-
-Your task and think step by step:
-1. Analyze the given query and its identified ambiguity type(s)
-2. Explain your reasoning: describe how you plan to clarify the query with your question
+Your task (think step by step):
+1. Analyze the given query and identify which ambiguity type(s) apply
+2. Explain your reasoning: describe what makes the query ambiguous and how your question will resolve it
 3. Generate ONE clear, simple clarifying question that addresses the MOST IMPORTANT missing information
 
 Important:
 - Avoid compound questions (don't use "or", "and" to ask multiple things)
 - Make it natural and conversational
 - Focus on the most critical ambiguity if multiple types are present
+- If you cannot identify any ambiguity, use "NONE" as the ambiguity type
 
 Output ONLY a valid JSON object with the following structure:
 {{
     "original_query": "the original query text",
     "ambiguity_types": ["LEXICAL", "SEMANTIC"],
-    "reasoning": "your explanation of how the question will resolve the ambiguity",
+    "reasoning": "your explanation of what makes the query ambiguous and how the question will resolve it",
     "clarifying_question": "your generated question"
 }}
 
 Do not include any text outside the JSON object."""
 
     @staticmethod
-    def create_user_prompt(
-        query: str, ambiguity_types: list[str], reasoning: str
-    ) -> str:
-        """Create the user prompt for clarification generation.
+    def create_user_prompt(query: str) -> str:
+        """Create the user prompt for clarification generation with few-shot examples.
 
         Args:
-            query: The ambiguous query
-            ambiguity_types: The identified types of ambiguity (list)
-            reasoning: Explanation of why the query is ambiguous
+            query: The query to analyze
 
         Returns:
-            Formatted user prompt
+            Formatted user prompt with examples
         """
-        types_str = ", ".join(ambiguity_types)
-        return f"""Query: "{query}"
+        return f"""Analyze the query, identify its ambiguity type(s), and generate a clarifying question.
 
-Ambiguity Type(s): {types_str}
+Examples:
 
-Reasoning: {reasoning}
+Example 1:
+Query: "Tell me about the source of Nile."
+Output: {{
+    "original_query": "Tell me about the source of Nile.",
+    "ambiguity_types": ["LEXICAL"],
+    "reasoning": "The word 'source' has multiple meanings: it could refer to the geographical source (where the river originates) or informational sources (books, articles about the Nile). This lexical ambiguity needs clarification.",
+    "clarifying_question": "Are you asking about the geographical origin of the Nile River, or are you looking for informational sources about the Nile?"
+}}
 
-Generate a clarifying question to resolve this ambiguity. Output as JSON only."""
+Example 2:
+Query: "When did he land on the moon?"
+Output: {{
+    "original_query": "When did he land on the moon?",
+    "ambiguity_types": ["REFERENCE"],
+    "reasoning": "The pronoun 'he' is an ambiguous reference - it's unclear which person landed on the moon. Multiple astronauts have landed on the moon at different times.",
+    "clarifying_question": "Which astronaut are you asking about? For example, Neil Armstrong, Buzz Aldrin, or another astronaut?"
+}}
+
+Example 3:
+Query: "Find the price of Samsung Chromecast."
+Output: {{
+    "original_query": "Find the price of Samsung Chromecast.",
+    "ambiguity_types": ["UNFAMILIAR"],
+    "reasoning": "There is no such product as 'Samsung Chromecast'. Chromecast is made by Google, not Samsung. This appears to be an unfamiliar or non-existent entity.",
+    "clarifying_question": "Did you mean the Google Chromecast, or are you looking for a Samsung streaming device?"
+}}
+
+Example 4:
+Query: "John told Mark he won the race."
+Output: {{
+    "original_query": "John told Mark he won the race.",
+    "ambiguity_types": ["REFERENCE"],
+    "reasoning": "The pronoun 'he' could refer to either John or Mark, making it unclear who actually won the race.",
+    "clarifying_question": "Who won the race - John or Mark?"
+}}
+
+Example 5:
+Query: "What is the population of Tokyo in 2023?"
+Output: {{
+    "original_query": "What is the population of Tokyo in 2023?",
+    "ambiguity_types": ["NONE"],
+    "reasoning": "This query is clear and unambiguous. It specifies the location (Tokyo) and the time period (2023) with sufficient detail.",
+    "clarifying_question": "This query is clear and does not require clarification."
+}}
+
+Now analyze this query:
+Query: "{query}"
+Output:"""
 
     @staticmethod
-    def create_messages(query: str, ambiguity_types: list[str], reasoning: str) -> list:
+    def create_messages(query: str) -> list:
         """Create the full message list for the model.
 
         Args:
-            query: The ambiguous query
-            ambiguity_types: The identified types of ambiguity (list)
-            reasoning: Explanation of why the query is ambiguous
+            query: The query to analyze and generate clarification for
 
         Returns:
             List of message dicts in OpenAI format
@@ -85,9 +123,7 @@ Generate a clarifying question to resolve this ambiguity. Output as JSON only.""
             },
             {
                 "role": "user",
-                "content": ClarificationGenerationPrompt.create_user_prompt(
-                    query, ambiguity_types, reasoning
-                ),
+                "content": ClarificationGenerationPrompt.create_user_prompt(query),
             },
         ]
 
@@ -108,7 +144,7 @@ Generate a clarifying question to resolve this ambiguity. Output as JSON only.""
             response: The model's response text containing JSON
 
         Returns:
-            Dictionary with original_query, ambiguity_type, clarifying_question
+            Dictionary with original_query, ambiguity_types, reasoning, clarifying_question
 
         Raises:
             ValueError: If response cannot be parsed

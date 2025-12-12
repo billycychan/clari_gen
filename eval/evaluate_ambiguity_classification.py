@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Evaluation script for ambiguity classification.
+Evaluation script for binary ambiguity detection.
 
 This script evaluates the binary classification performance of the ambiguity
-classification model on preprocessed datasets. It classifies queries as either
-clear (label 0) or ambiguous (label 1) based on whether the ambiguity type is NONE.
+detection model on preprocessed datasets. It classifies queries as either
+clear (label 0) or ambiguous (label 1).
 
 Features:
-- Binary classification: NONE -> 0 (clear), otherwise -> 1 (ambiguous)
+- Binary classification: clear -> 0, ambiguous -> 1
 - Classification report with precision, recall, F1-score
 - Average inference time measurement
 - Support for multiple datasets (ClariQ, AmbigNQ)
@@ -15,14 +15,8 @@ Features:
 - Progress tracking with tqdm
 
 Usage:
-    # Evaluate on ClariQ dataset with default zero-shot CoT strategy
+    # Evaluate on ClariQ dataset
     python evaluate_ambiguity_classification.py --dataset clariq
-
-    # Evaluate with different prompting strategies
-    python evaluate_ambiguity_classification.py --dataset clariq --strategy zero_shot
-    python evaluate_ambiguity_classification.py --dataset clariq --strategy few_shot
-    python evaluate_ambiguity_classification.py --dataset clariq --strategy zero_shot_cot
-    python evaluate_ambiguity_classification.py --dataset clariq --strategy few_shot_cot
 
     # Evaluate on AmbigNQ dataset
     python evaluate_ambiguity_classification.py --dataset ambignq
@@ -31,7 +25,7 @@ Usage:
     python evaluate_ambiguity_classification.py --dataset all
 
     # Custom configuration
-    python evaluate_ambiguity_classification.py --dataset clariq --batch-size 64 --max-workers 16 --strategy few_shot_cot
+    python evaluate_ambiguity_classification.py --dataset clariq --batch-size 64 --max-workers 16
 """
 
 import argparse
@@ -57,7 +51,7 @@ from tqdm import tqdm
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from clari_gen.clients import SmallModelClient
-from clari_gen.prompts import AmbiguityClassificationPrompt
+from clari_gen.prompts import BinaryDetectionPrompt
 from clari_gen.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -105,12 +99,12 @@ def load_dataset(data_path: str) -> pd.DataFrame:
 
 def initialize_client() -> SmallModelClient:
     """
-    Initialize the small model client for ambiguity classification.
+    Initialize the small model client for binary ambiguity detection.
 
     Returns:
         Configured SmallModelClient instance
     """
-    logger.info("Initializing small model client for classification")
+    logger.info("Initializing small model client for binary detection")
 
     try:
         small_client = SmallModelClient()
@@ -135,22 +129,22 @@ def classify_single_query(
     small_client: SmallModelClient,
     query: str,
     query_idx: int,
-    strategy: str,
     max_retries: int = 3,
-) -> Tuple[int, int, str, str, float]:
+    strategy: str = "few_shot",
+) -> Tuple[int, str, str, float]:
     """
     Classify a single query as clear (0) or ambiguous (1) with retry mechanism.
 
     Args:
-        small_client: The small model client for classification
+        small_client: The small model client for binary detection
         query: Query string to classify
         query_idx: Index of the query for ordering
-        strategy: Prompting strategy to use: "zero_shot", "few_shot", "zero_shot_cot", or "few_shot_cot"
         max_retries: Maximum number of retry attempts for parsing errors (default: 3)
+        strategy: Prompting strategy - "zero_shot" or "few_shot" (default: "few_shot")
 
     Returns:
-        Tuple of (query_idx, predicted_label, ambiguity_types, error_msg, inference_time)
-        - predicted_label: 0 if NONE (clear), 1 otherwise (ambiguous)
+        Tuple of (query_idx, predicted_label, detection_result, error_msg, inference_time)
+        - predicted_label: 0 if clear, 1 if ambiguous
     """
     last_error = None
 
@@ -158,31 +152,28 @@ def classify_single_query(
         try:
             start_time = time.time()
 
-            # Create classification messages
-            messages = AmbiguityClassificationPrompt.create_messages(
-                query, strategy=strategy
-            )
+            # Create binary detection messages
+            messages = BinaryDetectionPrompt.create_messages(query, strategy)
 
-            # Call classification with structured output
-            response = small_client.classify_ambiguity(
+            # Call binary detection with structured output
+            response = small_client.detect_binary_ambiguity(
                 messages,
-                response_format=AmbiguityClassificationPrompt.get_response_schema(),
+                response_format=BinaryDetectionPrompt.get_response_schema(),
             )
 
             # Parse structured response
-            ambiguity_types_strs, reasoning = (
-                AmbiguityClassificationPrompt.parse_response(response)
-            )
+            data = BinaryDetectionPrompt.parse_response(response)
+            is_ambiguous = data["is_ambiguous"]
 
             inference_time = time.time() - start_time
 
-            # Binary classification: NONE -> 0 (clear), otherwise -> 1 (ambiguous)
-            predicted_label = 0 if "NONE" in ambiguity_types_strs else 1
+            # Binary classification: False -> 0 (clear), True -> 1 (ambiguous)
+            predicted_label = 1 if is_ambiguous else 0
 
-            # Get ambiguity types as string
-            ambiguity_types = ", ".join(ambiguity_types_strs)
+            # Detection result as string
+            detection_result = "AMBIGUOUS" if is_ambiguous else "CLEAR"
 
-            return (query_idx, predicted_label, ambiguity_types, "", inference_time)
+            return (query_idx, predicted_label, detection_result, "", inference_time)
 
         except KeyboardInterrupt:
             # Re-raise keyboard interrupt to allow clean shutdown
@@ -226,24 +217,24 @@ def process_batch_multithreaded(
     queries: List[str],
     batch_idx: int,
     total_batches: int,
-    strategy: str,
     max_workers: int = 8,
     max_retries: int = 3,
+    strategy: str = "few_shot",
 ) -> List[Tuple[int, str, str, float]]:
     """
     Process a batch of queries using multithreading.
 
     Args:
-        small_client: The small model client for classification
+        small_client: The small model client for binary detection
         queries: List of query strings to process
         batch_idx: Current batch index (for logging)
         total_batches: Total number of batches (for logging)
-        strategy: Prompting strategy to use: "zero_shot", "few_shot", "zero_shot_cot", or "few_shot_cot"
         max_workers: Maximum number of concurrent threads
         max_retries: Maximum number of retry attempts for parsing errors (default: 3)
+        strategy: Prompting strategy - "zero_shot" or "few_shot" (default: "few_shot")
 
     Returns:
-        List of tuples: (predicted_label, ambiguity_types, error_msg, inference_time)
+        List of tuples: (predicted_label, detection_result, error_msg, inference_time)
     """
     results = [None] * len(queries)
     counter = ProgressCounter()
@@ -257,8 +248,8 @@ def process_batch_multithreaded(
                     small_client,
                     query,
                     idx,
-                    strategy,
                     max_retries,
+                    strategy,
                 ): idx
                 for idx, query in enumerate(queries)
             }
@@ -274,13 +265,13 @@ def process_batch_multithreaded(
                         (
                             query_idx,
                             predicted_label,
-                            ambiguity_types,
+                            detection_result,
                             error_msg,
                             inference_time,
                         ) = future.result()
                         results[query_idx] = (
                             predicted_label,
-                            ambiguity_types,
+                            detection_result,
                             error_msg,
                             inference_time,
                         )
@@ -318,19 +309,19 @@ def evaluate_classification(
     batch_size: int = 32,
     output_path: str = None,
     max_workers: int = 8,
-    strategy: str = "zero_shot_cot",
     max_retries: int = 3,
+    strategy: str = "few_shot",
 ) -> Dict:
     """
-    Evaluate the classification performance on the dataset.
+    Evaluate the binary detection performance on the dataset.
 
     Args:
         data_path: Path to the dataset TSV file
         batch_size: Number of queries to process in each batch
         output_path: Optional path to save detailed results as TSV
         max_workers: Maximum number of concurrent threads (default: 8)
-        strategy: Prompting strategy to use: "zero_shot", "few_shot", "zero_shot_cot", or "few_shot_cot"
         max_retries: Maximum number of retry attempts for parsing errors (default: 3)
+        strategy: Prompting strategy - "zero_shot" or "few_shot" (default: "few_shot")
 
     Returns:
         Dictionary containing evaluation metrics and results
@@ -352,12 +343,12 @@ def evaluate_classification(
         f"Processing {total_queries} queries in {total_batches} batches of size {batch_size}"
     )
     logger.info(f"Using multithreading with max_workers={max_workers}")
-    logger.info(f"Using prompting strategy: {strategy}")
     logger.info(f"Max retries per query: {max_retries}")
+    logger.info(f"Prompting strategy: {strategy}")
 
     # Process queries in batches
     all_predictions = []
-    all_ambiguity_types = []
+    all_detection_results = []
     all_errors = []
     all_inference_times = []
 
@@ -375,19 +366,19 @@ def evaluate_classification(
                 batch_queries,
                 batch_idx + 1,
                 total_batches,
-                strategy,
                 max_workers,
                 max_retries,
+                strategy,
             )
 
             for (
                 predicted_label,
-                ambiguity_types,
+                detection_result,
                 error_msg,
                 inference_time,
             ) in batch_results:
                 all_predictions.append(predicted_label)
-                all_ambiguity_types.append(ambiguity_types)
+                all_detection_results.append(detection_result)
                 all_errors.append(error_msg)
                 all_inference_times.append(inference_time)
 
@@ -502,7 +493,7 @@ def evaluate_classification(
                 "initial_request": queries,
                 "ground_truth": labels,
                 "predicted": all_predictions,
-                "ambiguity_types": all_ambiguity_types,
+                "detection_result": all_detection_results,
                 "error": all_errors,
                 "correct": [
                     1 if g == p else 0 for g, p in zip(labels, all_predictions)
@@ -586,17 +577,17 @@ Examples:
         help="Maximum number of concurrent threads (default: 8, recommended: 8-16)",
     )
     parser.add_argument(
-        "--strategy",
-        type=str,
-        choices=["zero_shot", "few_shot", "zero_shot_cot", "few_shot_cot"],
-        default="zero_shot_cot",
-        help="Prompting strategy: 'zero_shot' (no examples), 'few_shot' (with examples), 'zero_shot_cot' (chain-of-thought), or 'few_shot_cot' (examples + CoT) (default: zero_shot_cot)",
-    )
-    parser.add_argument(
         "--max-retries",
         type=int,
         default=3,
         help="Maximum number of retry attempts for queries that fail to parse (default: 3)",
+    )
+    parser.add_argument(
+        "--strategy",
+        type=str,
+        choices=["zero_shot", "few_shot"],
+        default="few_shot",
+        help="Prompting strategy: 'zero_shot' (no examples) or 'few_shot' (with examples) (default: few_shot)",
     )
 
     args = parser.parse_args()
@@ -669,8 +660,8 @@ Examples:
                 batch_size=args.batch_size,
                 output_path=output_path,
                 max_workers=args.max_workers,
-                strategy=args.strategy,
                 max_retries=args.max_retries,
+                strategy=args.strategy,
             )
 
             all_results[dataset_name] = results

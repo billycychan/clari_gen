@@ -6,7 +6,7 @@ from typing import Optional, Callable
 from ..models import Query, QueryStatus, AmbiguityType
 from ..clients import SmallModelClient, LargeModelClient
 from ..prompts import (
-    AmbiguityClassificationPrompt,
+    BinaryDetectionPrompt,
     ClarificationGenerationPrompt,
     ClarificationValidationPrompt,
     QueryReformulationPrompt,
@@ -27,8 +27,8 @@ class AmbiguityPipeline:
         """Initialize the ambiguity pipeline.
 
         Args:
-            small_model_client: Client for the 8B model (ambiguity classification)
-            large_model_client: Client for the 70B model (clarification generation, validation, reformulation)
+            small_model_client: Client for the 8B model (binary ambiguity detection)
+            large_model_client: Client for the 70B model (clarification with classification, validation, reformulation)
             max_clarification_attempts: Maximum number of times to ask for clarification
         """
         self.small_model = small_model_client or SmallModelClient()
@@ -57,22 +57,20 @@ class AmbiguityPipeline:
         logger.info(f"Processing query: {query_text[:50]}...")
 
         try:
-            # Step 1: Classify ambiguity (returns NONE if not ambiguous)
-            query = self._classify_ambiguity(query)
+            # Step 1: Binary ambiguity detection
+            query = self._detect_binary_ambiguity(query)
 
-            # Check if query is not ambiguous (NONE type)
-            if AmbiguityType.NONE in query.ambiguity_types:
+            # Check if query is not ambiguous
+            if not query.is_ambiguous:
                 # Query is clear - return as-is
-                query.is_ambiguous = False
                 query.status = QueryStatus.COMPLETED
-                logger.info("Query is not ambiguous (NONE type) - returning original")
+                logger.info("Query is not ambiguous - returning original")
                 return query
 
-            # Query is ambiguous
-            query.is_ambiguous = True
+            # Query is ambiguous - proceed to clarification generation
             query.status = QueryStatus.AMBIGUOUS
 
-            # Generate clarifying question
+            # Step 2: Generate clarifying question with embedded classification
             query = self._generate_clarifying_question(query)
 
             # If no callback provided, return query in awaiting state
@@ -133,61 +131,62 @@ class AmbiguityPipeline:
             logger.error(f"Error processing query: {e}", exc_info=True)
             return query
 
-    def _classify_ambiguity(self, query: Query) -> Query:
-        """Classify the type of ambiguity using the small model.
+    def _detect_binary_ambiguity(self, query: Query) -> Query:
+        """Detect if query is ambiguous using binary classification with the small model.
 
         Args:
             query: Query object to process
 
         Returns:
-            Updated Query object with ambiguity classification (may include NONE if not ambiguous)
+            Updated Query object with is_ambiguous field set
         """
         query.status = QueryStatus.CHECKING_AMBIGUITY
-        logger.info("Step 1: Classifying ambiguity type(s)")
+        logger.info("Step 1: Binary ambiguity detection")
 
-        messages = AmbiguityClassificationPrompt.create_messages(query.original_query)
-        response = self.small_model.classify_ambiguity(
+        messages = BinaryDetectionPrompt.create_messages(query.original_query)
+        response = self.small_model.detect_binary_ambiguity(
             messages,
-            response_format=AmbiguityClassificationPrompt.get_response_schema(),
+            response_format=BinaryDetectionPrompt.get_response_schema(),
         )
 
-        ambiguity_types_strs, reasoning = AmbiguityClassificationPrompt.parse_response(
-            response
-        )
+        data = BinaryDetectionPrompt.parse_response(response)
+        query.is_ambiguous = data["is_ambiguous"]
 
-        query.ambiguity_types = [AmbiguityType[t] for t in ambiguity_types_strs]
-        query.ambiguity_reasoning = reasoning
-
-        types_str = ", ".join(ambiguity_types_strs)
-        logger.info(f"Ambiguity classified as: {types_str}")
+        logger.info(f"Binary ambiguity detection result: {query.is_ambiguous}")
 
         return query
 
     def _generate_clarifying_question(self, query: Query) -> Query:
-        """Generate a clarifying question using the large model.
+        """Generate a clarifying question with embedded classification using the large model.
+
+        This method now both identifies ambiguity types and generates the clarifying question
+        in a single call to the large model.
 
         Args:
             query: Query object to process
 
         Returns:
-            Updated Query object with clarifying question
+            Updated Query object with ambiguity_types, reasoning, and clarifying_question
         """
-        logger.info("Step 2: Generating clarifying question")
-
-        ambiguity_types_strs = [t.value for t in query.ambiguity_types]
-        messages = ClarificationGenerationPrompt.create_messages(
-            query.original_query,
-            ambiguity_types_strs,
-            query.ambiguity_reasoning,
+        logger.info(
+            "Step 2: Generating clarifying question with embedded classification"
         )
-        response = self.large_model.generate_clarifying_question(
+
+        messages = ClarificationGenerationPrompt.create_messages(query.original_query)
+        response = self.large_model.generate_clarification(
             messages,
             response_format=ClarificationGenerationPrompt.get_response_schema(),
         )
 
         data = ClarificationGenerationPrompt.parse_response(response)
+
+        # Populate ambiguity types from the generation response
+        query.ambiguity_types = [AmbiguityType[t] for t in data["ambiguity_types"]]
+        query.ambiguity_reasoning = data["reasoning"]
         query.clarifying_question = data["clarifying_question"]
 
+        types_str = ", ".join(data["ambiguity_types"])
+        logger.info(f"Identified ambiguity types: {types_str}")
         logger.info(f"Generated question: {query.clarifying_question}")
 
         return query

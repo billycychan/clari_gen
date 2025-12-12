@@ -57,31 +57,6 @@ Output:
   "reasoning": "‘Jaguar’ may refer to the animal, the automobile brand, or a software system. The phrase ‘issues’ is also undefined, making intent unclear."
 }}
 
-### Example C1
-Query: "How do I reset a Cisco router to factory settings?"
-Output:
-{{
-  "ambiguity_types": ["NONE"],
-  "reasoning": "The device type and task are explicit, allowing a direct procedural response."
-}}
-
-### Example C2
-Query: "Convert 150 kilometers to miles."
-Output:
-{{
-  "ambiguity_types": ["NONE"],
-  "reasoning": "A clear numerical conversion task with no alternative interpretations."
-}}
-
-### Example C3
-Query: "List three renewable energy sources."
-Output:
-{{
-  "ambiguity_types": ["NONE"],
-  "reasoning": "The category and requirement are explicit and permit a straightforward response."
-}}
-
-Now classify the next query.
 """
 
 zero_shot_cot_prompt = f"""

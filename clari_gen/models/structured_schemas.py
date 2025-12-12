@@ -4,6 +4,14 @@ from pydantic import BaseModel, Field
 from typing import List
 
 
+class BinaryDetectionResponse(BaseModel):
+    """Schema for binary ambiguity detection response."""
+
+    is_ambiguous: bool = Field(
+        description="Whether the query is ambiguous (True) or clear (False)"
+    )
+
+
 class ClarificationResponse(BaseModel):
     """Schema for clarification generation response."""
 

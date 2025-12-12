@@ -12,7 +12,6 @@ class AmbiguityType(str, Enum):
     LEXICAL = "LEXICAL"
     SEMANTIC = "SEMANTIC"
     REFERENCE = "REFERENCE"
-    NONE = "NONE"  # Query is not ambiguous
 
 
 # Ambiguity type definitions with examples
@@ -44,8 +43,6 @@ def format_ambiguity_definitions_for_prompt() -> str:
     """Format ambiguity definitions for inclusion in prompts."""
     lines = []
     for ambiguity_type in AmbiguityType:
-        if ambiguity_type == AmbiguityType.NONE:
-            continue
         definition = AMBIGUITY_DEFINITIONS[ambiguity_type]
         lines.append(f"- **{ambiguity_type.value}**: {definition['explanation']}")
         lines.append(f"  Example: \"{definition['example']}\"")
