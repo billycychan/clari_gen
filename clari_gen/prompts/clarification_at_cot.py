@@ -1,15 +1,15 @@
-"""Prompt for generating clarifying questions using the large model (70B)."""
+"""AT-CoT prompt for generating clarifying questions with ambiguity types and chain-of-thought reasoning."""
 
 from ..models.ambiguity_types import format_ambiguity_definitions_for_prompt
 from ..models.structured_schemas import ClarificationResponse
 
 
-class ClarificationGenerationPrompt:
-    """Generates prompts for creating clarifying questions with embedded ambiguity classification."""
+class ClarificationATCoTPrompt:
+    """Generates clarifying questions with ambiguity type guidance and chain-of-thought reasoning."""
 
     @staticmethod
     def create_system_prompt() -> str:
-        """Create the system prompt for clarification generation with classification.
+        """Create the system prompt for AT-CoT clarification generation.
 
         Returns:
             System prompt string
@@ -24,8 +24,9 @@ Here are the possible ambiguity types:
 
 Your task (think step by step):
 1. Analyze the given query and identify which ambiguity type(s) apply
-2. Explain your reasoning: describe what makes the query ambiguous and how your question will resolve it
-3. Generate ONE clear, simple clarifying question that addresses the MOST IMPORTANT missing information
+2. Explain your reasoning: describe which types of ambiguity apply to the given query
+3. Based on these ambiguity types, describe how you plan to clarify the original query
+4. Generate ONE clear, simple clarifying question that addresses the MOST IMPORTANT missing information
 
 Important:
 - Avoid compound questions (don't use "or", "and" to ask multiple things)
@@ -37,7 +38,7 @@ Output ONLY a valid JSON object with the following structure:
 {{
     "original_query": "the original query text",
     "ambiguity_types": ["LEXICAL", "SEMANTIC"],
-    "reasoning": "your explanation of what makes the query ambiguous and how the question will resolve it",
+    "reasoning": "your explanation of which types of ambiguity apply and how you plan to clarify the query",
     "clarifying_question": "your generated question"
 }}
 
@@ -45,16 +46,18 @@ Do not include any text outside the JSON object."""
 
     @staticmethod
     def create_user_prompt(query: str) -> str:
-        """Create the user prompt for clarification generation with few-shot examples.
+        """Create the user prompt for clarification generation.
 
         Args:
             query: The query to analyze
 
         Returns:
-            Formatted user prompt with examples
+            Formatted user prompt
         """
-        return f"""Analyze the query, identify its ambiguity type(s), and generate a clarifying question.
-Now analyze this query:
+        return f"""Given a query in an information-seeking system, generate a clarifying question that you think is most appropriate to gain a better understanding of the user's intent. The ambiguity of a query can be multifaceted, and there are multiple possible ambiguity types.
+
+Before generating the clarifying question, provide a textual explanation of your reasoning about which types of ambiguity apply to the given query. Based on these ambiguity types, describe how you plan to clarify the original query.
+
 Query: "{query}"
 Output:"""
 
@@ -71,11 +74,11 @@ Output:"""
         return [
             {
                 "role": "system",
-                "content": ClarificationGenerationPrompt.create_system_prompt(),
+                "content": ClarificationATCoTPrompt.create_system_prompt(),
             },
             {
                 "role": "user",
-                "content": ClarificationGenerationPrompt.create_user_prompt(query),
+                "content": ClarificationATCoTPrompt.create_user_prompt(query),
             },
         ]
 
@@ -102,7 +105,6 @@ Output:"""
             ValueError: If response cannot be parsed
         """
         try:
-            # With structured outputs, response should be valid JSON
             parsed = ClarificationResponse.model_validate_json(response)
             return {
                 "original_query": parsed.original_query,

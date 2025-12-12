@@ -8,7 +8,6 @@ from .clarification_validation import ClarificationValidationPrompt
 
 __all__ = [
     "BinaryDetectionPrompt",
-    "AmbiguityClassificationPrompt",
     "ClarificationGenerationPrompt",
     "QueryReformulationPrompt",
     "ClarificationValidationPrompt",
