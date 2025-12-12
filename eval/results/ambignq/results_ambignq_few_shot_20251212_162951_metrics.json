@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-12-12T16:31:18.546882",
+  "dataset_path": "/nfs/u40/chanc187/source/clari_gen/data/ambignq_preprocessed.tsv",
+  "total_queries": 2002,
+  "processed_queries": 2002,
+  "batch_size": 32,
+  "max_workers": 8,
+  "classification_report": {
+    "Clear (0)": {
+      "precision": 0.42326732673267325,
+      "recall": 0.20602409638554217,
+      "f1-score": 0.2771474878444084,
+      "support": 830.0
+    },
+    "Ambiguous (1)": {
+      "precision": 0.5876095118898623,
+      "recall": 0.8011945392491467,
+      "f1-score": 0.6779783393501805,
+      "support": 1172.0
+    },
+    "accuracy": 0.5544455544455544,
+    "macro avg": {
+      "precision": 0.5054384193112678,
+      "recall": 0.5036093178173444,
+      "f1-score": 0.4775629135972944,
+      "support": 2002.0
+    },
+    "weighted avg": {
+      "precision": 0.5194756389225961,
+      "recall": 0.5544455544455544,
+      "f1-score": 0.5117997146000353,
+      "support": 2002.0
+    }
+  },
+  "confusion_matrix": {
+    "tn": 171,
+    "fp": 659,
+    "fn": 233,
+    "tp": 939
+  },
+  "accuracy": 0.5544455544455544,
+  "weighted_precision": 0.5194756389225961,
+  "weighted_recall": 0.5544455544455544,
+  "weighted_f1": 0.5117997146000353,
+  "avg_inference_time_seconds": 0.017395767655882327,
+  "total_processing_time_seconds": 34.826326847076416,
+  "error_count": 0
+}

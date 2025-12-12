@@ -1,0 +1,461 @@
+Ambiguity Classification Evaluation Summary
+Generated: 2025-12-12 16:31:18
+
+Configuration:
+- Batch Size: 32
+- Max Workers: 8
+- Timestamp: 20251212_162951
+
+Results:
+- Total Runs: 4
+- Completed: 4
+- Failed: 0
+
+Output Files:
+
+CLARIQ:
+  ✓ zero_shot: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_20251212_162951.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_20251212_162951_metrics.json
+  ✓ few_shot: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_20251212_162951.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_20251212_162951_metrics.json
+
+AMBIGNQ:
+  ✓ zero_shot: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_20251212_162951.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_20251212_162951_metrics.json
+  ✓ few_shot: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_20251212_162951.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_20251212_162951_metrics.json
+
+MAX_TOKEN = 100
+TEMP = 0
+
+(vllm) [chanc187@grace ~/source/clari_gen/eval] '/u40/chanc187/source/clari_gen/eval/eval_binary_detection_datasets.sh'
+======================================================================
+  Running Evaluation on AmbigNQ and ClariQ
+======================================================================
+Configuration:
+  Batch Size: 32
+  Max Workers: 8
+  Results Directory: /u40/chanc187/source/clari_gen/eval/results
+  Timestamp: 20251212_162951
+
+Total evaluations to run: 4
+
+======================================================================
+  Dataset: CLARIQ
+======================================================================
+
+[1/4] Running evaluation: clariq - zero_shot
+  Strategy: zero_shot
+  Started at: 2025-12-12 16:29:51
+2025-12-12 16:29:53,328 - __main__ - INFO - 
+================================================================================
+2025-12-12 16:29:53,328 - __main__ - INFO - EVALUATING DATASET: CLARIQ
+2025-12-12 16:29:53,328 - __main__ - INFO - ================================================================================
+2025-12-12 16:29:53,329 - __main__ - INFO - Data path: /nfs/u40/chanc187/source/clari_gen/data/clariq_preprocessed.tsv
+2025-12-12 16:29:53,329 - __main__ - INFO - Loading dataset from /nfs/u40/chanc187/source/clari_gen/data/clariq_preprocessed.tsv
+2025-12-12 16:29:53,330 - __main__ - INFO - Loaded 299 queries
+2025-12-12 16:29:53,331 - __main__ - INFO - Label distribution: {1: 262, 0: 37}
+2025-12-12 16:29:53,331 - __main__ - INFO - Initializing small model client for binary detection
+2025-12-12 16:29:53,379 - __main__ - INFO - Testing model server connection...
+2025-12-12 16:29:53,596 - __main__ - INFO - ✓ Model server connected successfully
+2025-12-12 16:29:53,596 - __main__ - INFO - Processing 299 queries in 10 batches of size 32
+2025-12-12 16:29:53,596 - __main__ - INFO - Using multithreading with max_workers=8
+2025-12-12 16:29:53,596 - __main__ - INFO - Max retries per query: 3
+2025-12-12 16:29:53,597 - __main__ - INFO - Prompting strategy: zero_shot
+2025-12-12 16:29:58,853 - __main__ - INFO -                                                                                                                      
+============================================================
+2025-12-12 16:29:58,853 - __main__ - INFO - CLASSIFICATION REPORT
+2025-12-12 16:29:58,853 - __main__ - INFO - ============================================================
+               precision    recall  f1-score   support
+
+    Clear (0)     0.1923    0.4054    0.2609        37
+Ambiguous (1)     0.9005    0.7595    0.8240       262
+
+     accuracy                         0.7157       299
+    macro avg     0.5464    0.5825    0.5424       299
+ weighted avg     0.8128    0.7157    0.7543       299
+
+2025-12-12 16:29:58,858 - __main__ - INFO - 
+               precision    recall  f1-score   support
+
+    Clear (0)     0.1923    0.4054    0.2609        37
+Ambiguous (1)     0.9005    0.7595    0.8240       262
+
+     accuracy                         0.7157       299
+    macro avg     0.5464    0.5825    0.5424       299
+ weighted avg     0.8128    0.7157    0.7543       299
+
+2025-12-12 16:29:58,862 - __main__ - INFO - 
+============================================================
+2025-12-12 16:29:58,862 - __main__ - INFO - CONFUSION MATRIX
+2025-12-12 16:29:58,862 - __main__ - INFO - ============================================================
+2025-12-12 16:29:58,862 - __main__ - INFO - 
+[[ 15  22]
+ [ 63 199]]
+2025-12-12 16:29:58,862 - __main__ - INFO - 
+TN=15, FP=22, FN=63, TP=199
+
+============================================================
+CONFUSION MATRIX
+============================================================
+                Predicted Clear  Predicted Ambiguous
+Actual Clear          15             22        
+Actual Ambiguous      63             199       
+
+True Negatives (TN): 15
+False Positives (FP): 22
+False Negatives (FN): 63
+True Positives (TP): 199
+
+============================================================
+INFERENCE TIME
+============================================================
+Average inference time per query: 0.0176 seconds
+Total processing time: 5.26 seconds
+2025-12-12 16:29:58,864 - __main__ - INFO - 
+Saving detailed results to /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_20251212_162951.tsv
+2025-12-12 16:29:58,867 - __main__ - INFO - ✓ Detailed results saved
+2025-12-12 16:29:58,869 - __main__ - INFO - ✓ Metrics saved to /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_20251212_162951_metrics.json
+
+============================================================
+EVALUATION SUMMARY - CLARIQ
+============================================================
+Total Queries: 299
+Processed Queries: 299
+Accuracy: 0.7157
+Weighted F1: 0.7543
+Weighted Precision: 0.8128
+Weighted Recall: 0.7157
+
+For Ambiguous Class (1):
+  Precision: 0.9005
+  Recall: 0.7595
+  F1-Score: 0.8240
+
+Inference Performance:
+  Avg Time per Query: 0.0176s
+  Total Processing Time: 5.26s
+
+✓ Evaluation completed successfully for clariq
+
+✓ All evaluations completed
+  ✓ Success!
+  Results saved to: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_20251212_162951.tsv
+  Completed at: 2025-12-12 16:29:59
+
+[2/4] Running evaluation: clariq - few_shot
+  Strategy: few_shot
+  Started at: 2025-12-12 16:29:59
+2025-12-12 16:30:00,130 - __main__ - INFO - 
+================================================================================
+2025-12-12 16:30:00,130 - __main__ - INFO - EVALUATING DATASET: CLARIQ
+2025-12-12 16:30:00,130 - __main__ - INFO - ================================================================================
+2025-12-12 16:30:00,130 - __main__ - INFO - Data path: /nfs/u40/chanc187/source/clari_gen/data/clariq_preprocessed.tsv
+2025-12-12 16:30:00,130 - __main__ - INFO - Loading dataset from /nfs/u40/chanc187/source/clari_gen/data/clariq_preprocessed.tsv
+2025-12-12 16:30:00,131 - __main__ - INFO - Loaded 299 queries
+2025-12-12 16:30:00,132 - __main__ - INFO - Label distribution: {1: 262, 0: 37}
+2025-12-12 16:30:00,132 - __main__ - INFO - Initializing small model client for binary detection
+2025-12-12 16:30:00,164 - __main__ - INFO - Testing model server connection...
+2025-12-12 16:30:00,296 - __main__ - INFO - ✓ Model server connected successfully
+2025-12-12 16:30:00,296 - __main__ - INFO - Processing 299 queries in 10 batches of size 32
+2025-12-12 16:30:00,296 - __main__ - INFO - Using multithreading with max_workers=8
+2025-12-12 16:30:00,296 - __main__ - INFO - Max retries per query: 3
+2025-12-12 16:30:00,296 - __main__ - INFO - Prompting strategy: few_shot
+2025-12-12 16:30:05,559 - __main__ - INFO -                                                                                                                      
+============================================================
+2025-12-12 16:30:05,559 - __main__ - INFO - CLASSIFICATION REPORT
+2025-12-12 16:30:05,559 - __main__ - INFO - ============================================================
+               precision    recall  f1-score   support
+
+    Clear (0)     0.1400    0.1892    0.1609        37
+Ambiguous (1)     0.8795    0.8359    0.8571       262
+
+     accuracy                         0.7559       299
+    macro avg     0.5098    0.5125    0.5090       299
+ weighted avg     0.7880    0.7559    0.7710       299
+
+2025-12-12 16:30:05,563 - __main__ - INFO - 
+               precision    recall  f1-score   support
+
+    Clear (0)     0.1400    0.1892    0.1609        37
+Ambiguous (1)     0.8795    0.8359    0.8571       262
+
+     accuracy                         0.7559       299
+    macro avg     0.5098    0.5125    0.5090       299
+ weighted avg     0.7880    0.7559    0.7710       299
+
+2025-12-12 16:30:05,568 - __main__ - INFO - 
+============================================================
+2025-12-12 16:30:05,568 - __main__ - INFO - CONFUSION MATRIX
+2025-12-12 16:30:05,568 - __main__ - INFO - ============================================================
+2025-12-12 16:30:05,568 - __main__ - INFO - 
+[[  7  30]
+ [ 43 219]]
+2025-12-12 16:30:05,568 - __main__ - INFO - 
+TN=7, FP=30, FN=43, TP=219
+
+============================================================
+CONFUSION MATRIX
+============================================================
+                Predicted Clear  Predicted Ambiguous
+Actual Clear          7              30        
+Actual Ambiguous      43             219       
+
+True Negatives (TN): 7
+False Positives (FP): 30
+False Negatives (FN): 43
+True Positives (TP): 219
+
+============================================================
+INFERENCE TIME
+============================================================
+Average inference time per query: 0.0176 seconds
+Total processing time: 5.26 seconds
+2025-12-12 16:30:05,570 - __main__ - INFO - 
+Saving detailed results to /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_20251212_162951.tsv
+2025-12-12 16:30:05,573 - __main__ - INFO - ✓ Detailed results saved
+2025-12-12 16:30:05,575 - __main__ - INFO - ✓ Metrics saved to /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_20251212_162951_metrics.json
+
+============================================================
+EVALUATION SUMMARY - CLARIQ
+============================================================
+Total Queries: 299
+Processed Queries: 299
+Accuracy: 0.7559
+Weighted F1: 0.7710
+Weighted Precision: 0.7880
+Weighted Recall: 0.7559
+
+For Ambiguous Class (1):
+  Precision: 0.8795
+  Recall: 0.8359
+  F1-Score: 0.8571
+
+Inference Performance:
+  Avg Time per Query: 0.0176s
+  Total Processing Time: 5.26s
+
+✓ Evaluation completed successfully for clariq
+
+✓ All evaluations completed
+  ✓ Success!
+  Results saved to: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_20251212_162951.tsv
+  Completed at: 2025-12-12 16:30:05
+
+
+======================================================================
+  Dataset: AMBIGNQ
+======================================================================
+
+[3/4] Running evaluation: ambignq - zero_shot
+  Strategy: zero_shot
+  Started at: 2025-12-12 16:30:05
+2025-12-12 16:30:06,834 - __main__ - INFO - 
+================================================================================
+2025-12-12 16:30:06,834 - __main__ - INFO - EVALUATING DATASET: AMBIGNQ
+2025-12-12 16:30:06,834 - __main__ - INFO - ================================================================================
+2025-12-12 16:30:06,834 - __main__ - INFO - Data path: /nfs/u40/chanc187/source/clari_gen/data/ambignq_preprocessed.tsv
+2025-12-12 16:30:06,834 - __main__ - INFO - Loading dataset from /nfs/u40/chanc187/source/clari_gen/data/ambignq_preprocessed.tsv
+2025-12-12 16:30:06,838 - __main__ - INFO - Loaded 2002 queries
+2025-12-12 16:30:06,839 - __main__ - INFO - Label distribution: {1: 1172, 0: 830}
+2025-12-12 16:30:06,839 - __main__ - INFO - Initializing small model client for binary detection
+2025-12-12 16:30:06,870 - __main__ - INFO - Testing model server connection...
+2025-12-12 16:30:07,002 - __main__ - INFO - ✓ Model server connected successfully
+2025-12-12 16:30:07,003 - __main__ - INFO - Processing 2002 queries in 63 batches of size 32
+2025-12-12 16:30:07,003 - __main__ - INFO - Using multithreading with max_workers=8
+2025-12-12 16:30:07,003 - __main__ - INFO - Max retries per query: 3
+2025-12-12 16:30:07,003 - __main__ - INFO - Prompting strategy: zero_shot
+2025-12-12 16:30:41,808 - __main__ - INFO -                                                                                                                      
+============================================================
+2025-12-12 16:30:41,808 - __main__ - INFO - CLASSIFICATION REPORT
+2025-12-12 16:30:41,808 - __main__ - INFO - ============================================================
+               precision    recall  f1-score   support
+
+    Clear (0)     0.4379    0.5735    0.4966       830
+Ambiguous (1)     0.6131    0.4787    0.5376      1172
+
+     accuracy                         0.5180      2002
+    macro avg     0.5255    0.5261    0.5171      2002
+ weighted avg     0.5405    0.5180    0.5206      2002
+
+2025-12-12 16:30:41,814 - __main__ - INFO - 
+               precision    recall  f1-score   support
+
+    Clear (0)     0.4379    0.5735    0.4966       830
+Ambiguous (1)     0.6131    0.4787    0.5376      1172
+
+     accuracy                         0.5180      2002
+    macro avg     0.5255    0.5261    0.5171      2002
+ weighted avg     0.5405    0.5180    0.5206      2002
+
+2025-12-12 16:30:41,819 - __main__ - INFO - 
+============================================================
+2025-12-12 16:30:41,819 - __main__ - INFO - CONFUSION MATRIX
+2025-12-12 16:30:41,819 - __main__ - INFO - ============================================================
+2025-12-12 16:30:41,819 - __main__ - INFO - 
+[[476 354]
+ [611 561]]
+2025-12-12 16:30:41,819 - __main__ - INFO - 
+TN=476, FP=354, FN=611, TP=561
+
+============================================================
+CONFUSION MATRIX
+============================================================
+                Predicted Clear  Predicted Ambiguous
+Actual Clear          476            354       
+Actual Ambiguous      611            561       
+
+True Negatives (TN): 476
+False Positives (FP): 354
+False Negatives (FN): 611
+True Positives (TP): 561
+
+============================================================
+INFERENCE TIME
+============================================================
+Average inference time per query: 0.0174 seconds
+Total processing time: 34.81 seconds
+2025-12-12 16:30:41,822 - __main__ - INFO - 
+Saving detailed results to /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_20251212_162951.tsv
+2025-12-12 16:30:41,830 - __main__ - INFO - ✓ Detailed results saved
+2025-12-12 16:30:41,831 - __main__ - INFO - ✓ Metrics saved to /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_20251212_162951_metrics.json
+
+============================================================
+EVALUATION SUMMARY - AMBIGNQ
+============================================================
+Total Queries: 2002
+Processed Queries: 2002
+Accuracy: 0.5180
+Weighted F1: 0.5206
+Weighted Precision: 0.5405
+Weighted Recall: 0.5180
+
+For Ambiguous Class (1):
+  Precision: 0.6131
+  Recall: 0.4787
+  F1-Score: 0.5376
+
+Inference Performance:
+  Avg Time per Query: 0.0174s
+  Total Processing Time: 34.81s
+
+✓ Evaluation completed successfully for ambignq
+
+✓ All evaluations completed
+  ✓ Success!
+  Results saved to: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_20251212_162951.tsv
+  Completed at: 2025-12-12 16:30:42
+
+[4/4] Running evaluation: ambignq - few_shot
+  Strategy: few_shot
+  Started at: 2025-12-12 16:30:42
+2025-12-12 16:30:43,475 - __main__ - INFO - 
+================================================================================
+2025-12-12 16:30:43,475 - __main__ - INFO - EVALUATING DATASET: AMBIGNQ
+2025-12-12 16:30:43,475 - __main__ - INFO - ================================================================================
+2025-12-12 16:30:43,475 - __main__ - INFO - Data path: /nfs/u40/chanc187/source/clari_gen/data/ambignq_preprocessed.tsv
+2025-12-12 16:30:43,475 - __main__ - INFO - Loading dataset from /nfs/u40/chanc187/source/clari_gen/data/ambignq_preprocessed.tsv
+2025-12-12 16:30:43,479 - __main__ - INFO - Loaded 2002 queries
+2025-12-12 16:30:43,480 - __main__ - INFO - Label distribution: {1: 1172, 0: 830}
+2025-12-12 16:30:43,480 - __main__ - INFO - Initializing small model client for binary detection
+2025-12-12 16:30:43,520 - __main__ - INFO - Testing model server connection...
+2025-12-12 16:30:43,706 - __main__ - INFO - ✓ Model server connected successfully
+2025-12-12 16:30:43,706 - __main__ - INFO - Processing 2002 queries in 63 batches of size 32
+2025-12-12 16:30:43,706 - __main__ - INFO - Using multithreading with max_workers=8
+2025-12-12 16:30:43,706 - __main__ - INFO - Max retries per query: 3
+2025-12-12 16:30:43,706 - __main__ - INFO - Prompting strategy: few_shot
+2025-12-12 16:31:18,532 - __main__ - INFO -                                                                                                                      
+============================================================
+2025-12-12 16:31:18,532 - __main__ - INFO - CLASSIFICATION REPORT
+2025-12-12 16:31:18,532 - __main__ - INFO - ============================================================
+               precision    recall  f1-score   support
+
+    Clear (0)     0.4233    0.2060    0.2771       830
+Ambiguous (1)     0.5876    0.8012    0.6780      1172
+
+     accuracy                         0.5544      2002
+    macro avg     0.5054    0.5036    0.4776      2002
+ weighted avg     0.5195    0.5544    0.5118      2002
+
+2025-12-12 16:31:18,538 - __main__ - INFO - 
+               precision    recall  f1-score   support
+
+    Clear (0)     0.4233    0.2060    0.2771       830
+Ambiguous (1)     0.5876    0.8012    0.6780      1172
+
+     accuracy                         0.5544      2002
+    macro avg     0.5054    0.5036    0.4776      2002
+ weighted avg     0.5195    0.5544    0.5118      2002
+
+2025-12-12 16:31:18,543 - __main__ - INFO - 
+============================================================
+2025-12-12 16:31:18,543 - __main__ - INFO - CONFUSION MATRIX
+2025-12-12 16:31:18,543 - __main__ - INFO - ============================================================
+2025-12-12 16:31:18,543 - __main__ - INFO - 
+[[171 659]
+ [233 939]]
+2025-12-12 16:31:18,543 - __main__ - INFO - 
+TN=171, FP=659, FN=233, TP=939
+
+============================================================
+CONFUSION MATRIX
+============================================================
+                Predicted Clear  Predicted Ambiguous
+Actual Clear          171            659       
+Actual Ambiguous      233            939       
+
+True Negatives (TN): 171
+False Positives (FP): 659
+False Negatives (FN): 233
+True Positives (TP): 939
+
+============================================================
+INFERENCE TIME
+============================================================
+Average inference time per query: 0.0174 seconds
+Total processing time: 34.83 seconds
+2025-12-12 16:31:18,546 - __main__ - INFO - 
+Saving detailed results to /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_20251212_162951.tsv
+2025-12-12 16:31:18,554 - __main__ - INFO - ✓ Detailed results saved
+2025-12-12 16:31:18,556 - __main__ - INFO - ✓ Metrics saved to /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_20251212_162951_metrics.json
+
+============================================================
+EVALUATION SUMMARY - AMBIGNQ
+============================================================
+Total Queries: 2002
+Processed Queries: 2002
+Accuracy: 0.5544
+Weighted F1: 0.5118
+Weighted Precision: 0.5195
+Weighted Recall: 0.5544
+
+For Ambiguous Class (1):
+  Precision: 0.5876
+  Recall: 0.8012
+  F1-Score: 0.6780
+
+Inference Performance:
+  Avg Time per Query: 0.0174s
+  Total Processing Time: 34.83s
+
+✓ Evaluation completed successfully for ambignq
+
+✓ All evaluations completed
+  ✓ Success!
+  Results saved to: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_20251212_162951.tsv
+  Completed at: 2025-12-12 16:31:18
+
+
+======================================================================
+  Evaluation Summary
+======================================================================
+Completed: 4/4
+
+Results saved to: /u40/chanc187/source/clari_gen/eval/results
+  - ClariQ results: /u40/chanc187/source/clari_gen/eval/results/clariq/
+  - AmbigNQ results: /u40/chanc187/source/clari_gen/eval/results/ambignq/
+
+Summary saved to: /u40/chanc187/source/clari_gen/eval/results/evaluation_summary_20251212_162951.txt
+
+✓ All evaluations completed successfully!
+(vllm) [chanc187@grace ~/source/clari_gen/eval] 
