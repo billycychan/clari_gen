@@ -1,0 +1,34 @@
+Ambiguity Classification Evaluation Summary
+Generated: 2025-12-12 15:14:59
+
+Configuration:
+- Batch Size: 64
+- Max Workers: 64
+- Timestamp: 20251212_150953
+
+Results:
+- Total Runs: 8
+- Completed: 8
+- Failed: 0
+
+Output Files:
+
+CLARIQ:
+  ✓ zero_shot: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_20251212_150953.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_20251212_150953_metrics.json
+  ✓ few_shot: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_20251212_150953.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_20251212_150953_metrics.json
+  ✓ zero_shot_cot: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_cot_20251212_150953.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_zero_shot_cot_20251212_150953_metrics.json
+  ✓ few_shot_cot: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_cot_20251212_150953.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/clariq/results_clariq_few_shot_cot_20251212_150953_metrics.json
+
+AMBIGNQ:
+  ✓ zero_shot: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_20251212_150953.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_20251212_150953_metrics.json
+  ✓ few_shot: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_20251212_150953.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_20251212_150953_metrics.json
+  ✓ zero_shot_cot: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_cot_20251212_150953.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_zero_shot_cot_20251212_150953_metrics.json
+  ✓ few_shot_cot: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_cot_20251212_150953.tsv
+    Metrics: /u40/chanc187/source/clari_gen/eval/results/ambignq/results_ambignq_few_shot_cot_20251212_150953_metrics.json

@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-12-12T15:10:30.300175",
+  "dataset_path": "/nfs/u40/chanc187/source/clari_gen/data/clariq_preprocessed.tsv",
+  "total_queries": 299,
+  "processed_queries": 299,
+  "batch_size": 64,
+  "max_workers": 64,
+  "classification_report": {
+    "Clear (0)": {
+      "precision": 0.14893617021276595,
+      "recall": 0.1891891891891892,
+      "f1-score": 0.16666666666666666,
+      "support": 37.0
+    },
+    "Ambiguous (1)": {
+      "precision": 0.8809523809523809,
+      "recall": 0.8473282442748091,
+      "f1-score": 0.8638132295719845,
+      "support": 262.0
+    },
+    "accuracy": 0.7658862876254181,
+    "macro avg": {
+      "precision": 0.5149442755825735,
+      "recall": 0.5182587167319992,
+      "f1-score": 0.5152399481193256,
+      "support": 299.0
+    },
+    "weighted avg": {
+      "precision": 0.7903684351417931,
+      "recall": 0.7658862876254181,
+      "f1-score": 0.7775442569047711,
+      "support": 299.0
+    }
+  },
+  "confusion_matrix": {
+    "tn": 7,
+    "fp": 30,
+    "fn": 40,
+    "tp": 222
+  },
+  "accuracy": 0.7658862876254181,
+  "weighted_precision": 0.7903684351417931,
+  "weighted_recall": 0.7658862876254181,
+  "weighted_f1": 0.7775442569047711,
+  "avg_inference_time_seconds": 0.02394514498503312,
+  "total_processing_time_seconds": 7.159598350524902,
+  "error_count": 0
+}

@@ -3,64 +3,221 @@
 from ..models.ambiguity_types import format_ambiguity_definitions_for_prompt
 from ..models.structured_schemas import AmbiguityClassificationResponse
 
+ambiguity_definitions = format_ambiguity_definitions_for_prompt()
+
+output_format_sample = f"""
+Output ONLY a valid JSON object:
+{{
+  "ambiguity_types": ["..."],
+  "reasoning": "1–2 sentences: the main competing interpretations/facets and why the label(s) apply."
+}}
+"""
+
+zero_shot_prompt = f"""
+You are an expert at detecting ambiguity in user queries for an information-seeking search system.
+
+Ambiguity types and their definitions:
+{ambiguity_definitions}
+
+Task:
+Given a user query, determine whether it requires clarification.
+
+Rules:
+1. Use only the ambiguity types defined above.
+2. If the query has exactly one clear, dominant interpretation, set "ambiguity_types" to ["NONE"].
+3. If the query has multiple plausible interpretations,  assign the relevant ambiguity types from the definitions above and  set "ambiguity_types" to a list
+"""
+
+
+few_shot_prompt = f"""
+
+{zero_shot_prompt}
+
+### Example A1
+Query: "Tell me about Mercury."
+Output:
+{{
+  "ambiguity_types": ["LEXICAL"],
+  "reasoning": "The term ‘Mercury’ could refer to the planet, the chemical element, or the mythological figure, resulting in multiple interpretations."
+}}
+
+### Example A2
+Query: "What is the best way to get there quickly?"
+Output:
+{{
+  "ambiguity_types": ["REFERENCE", "SEMANTIC"],
+  "reasoning": "Neither the destination (‘there’) nor the mode of travel is specified, creating multiple plausible interpretations."
+}}
+
+### Example A3
+Query: "Explain how to treat jaguar issues."
+Output:
+{{
+  "ambiguity_types": ["LEXICAL", "UNFAMILIAR"],
+  "reasoning": "‘Jaguar’ may refer to the animal, the automobile brand, or a software system. The phrase ‘issues’ is also undefined, making intent unclear."
+}}
+
+### Example C1
+Query: "How do I reset a Cisco router to factory settings?"
+Output:
+{{
+  "ambiguity_types": ["NONE"],
+  "reasoning": "The device type and task are explicit, allowing a direct procedural response."
+}}
+
+### Example C2
+Query: "Convert 150 kilometers to miles."
+Output:
+{{
+  "ambiguity_types": ["NONE"],
+  "reasoning": "A clear numerical conversion task with no alternative interpretations."
+}}
+
+### Example C3
+Query: "List three renewable energy sources."
+Output:
+{{
+  "ambiguity_types": ["NONE"],
+  "reasoning": "The category and requirement are explicit and permit a straightforward response."
+}}
+
+Now classify the next query.
+"""
+
+zero_shot_cot_prompt = f"""
+
+{zero_shot_prompt}
+
+Think step by step before answering:
+1) Restate the most likely user intent.
+2) Enumerate at least two plausible interpretations or facets (if they exist).
+3) Map each interpretation to ambiguity type(s) using the definitions.
+4) Decide CLEAR vs AMBIGUOUS (clarification needed) using: if 2+ plausible interpretations/facets lead to different answers/results, choose AMBIGUOUS.
+5) Write a brief final reasoning (1–2 sentences) summarizing the decisive ambiguity.
+"""
+
+few_shot_cot_prompt = f"""
+
+{zero_shot_cot_prompt}
+Query: "Tell me about Mercury."
+Reasoning:
+- Interpret intent: User wants information about “Mercury.”
+- Check ambiguity: Could mean planet, chemical element, or mythological figure.
+- Decide: Clarification needed.
+- Map to type(s): LEXICAL.
+Output:
+{{
+  "ambiguity_types": ["LEXICAL"],
+  "reasoning": "The term ‘Mercury’ could refer to the planet, the chemical element, or the mythological figure, resulting in multiple interpretations."
+}}
+
+### Example A2
+Query: "What is the best way to get there quickly?"
+Reasoning:
+- Interpret intent: User wants guidance for reaching a destination.
+- Check ambiguity: “There” may refer to a physical location, webpage, or conceptual goal.
+- Decide: Clarification needed.
+- Map to type(s): REFERENCE, SEMANTIC.
+Output:
+{{
+  "ambiguity_types": ["REFERENCE", "SEMANTIC"],
+  "reasoning": "Neither the destination (‘there’) nor the mode of travel is specified, creating multiple plausible interpretations."
+}}
+
+### Example A3
+Query: "Explain how to treat jaguar issues."
+Reasoning:
+- Interpret intent: User wants help resolving “jaguar issues.”
+- Check ambiguity: “Jaguar” could mean an animal, car brand, or software system.
+- Decide: Clarification needed.
+- Map to type(s): LEXICAL, UNFAMILIAR.
+Output:
+{{
+  "ambiguity_types": ["LEXICAL", "UNFAMILIAR"],
+  "reasoning": "‘Jaguar’ may refer to the animal, the automobile brand, or a software system. The phrase ‘issues’ is also undefined, making intent unclear."
+}}
+
+### Example C1
+Query: "How do I reset a Cisco router to factory settings?"
+Reasoning:
+- Interpret intent: User wants instructions for factory-resetting a Cisco router.
+- Check ambiguity: Model differences exist but do not block giving standard guidance.
+- Decide: No clarification needed.
+- Map to type(s): NONE.
+Output:
+{{
+  "ambiguity_types": ["NONE"],
+  "reasoning": "The device type and task are explicit, allowing a direct procedural response."
+}}
+
+### Example C2
+Query: "Convert 150 kilometers to miles."
+Reasoning:
+- Interpret intent: User wants a distance converted from kilometers to miles.
+- Check ambiguity: None; single clear meaning.
+- Decide: No clarification needed.
+- Map to type(s): NONE.
+Output:
+{{
+  "ambiguity_types": ["NONE"],
+  "reasoning": "A clear numerical conversion task with no alternative interpretations."
+}}
+
+### Example C3
+Query: "List three renewable energy sources."
+Reasoning:
+- Interpret intent: User wants examples of renewable energy.
+- Check ambiguity: Only one straightforward interpretation.
+- Decide: No clarification needed.
+- Map to type(s): NONE.
+Output:
+{{
+  "ambiguity_types": ["NONE"],
+  "reasoning": "The category and requirement are explicit and permit a straightforward response."
+}}
+
+Now classify the next query.
+"""
+
 
 class AmbiguityClassificationPrompt:
     """Generates prompts for classifying the type of ambiguity."""
 
     @staticmethod
     def create_system_prompt() -> str:
-        """Create the system prompt for ambiguity classification.
+        """Create the system prompt for ambiguity classification (Zero-Shot).
 
         Returns:
             System prompt string
         """
-        ambiguity_definitions = format_ambiguity_definitions_for_prompt()
+        return zero_shot_prompt
 
-        return f"""You are an expert at analyzing queries in an information-seeking system. Your task is to identify and classify the type of ambiguity in a given query.
+    @staticmethod
+    def create_system_prompt_few_shot() -> str:
+        """Create few-shot system prompt with examples.
 
+        Returns:
+            System prompt string with examples
+        """
+        return few_shot_prompt
 
-Here are the possible ambiguity types:
+    @staticmethod
+    def create_system_prompt_zero_shot_cot() -> str:
+        """Create Chain-of-Thought system prompt (zero-shot).
 
+        Returns:
+            System prompt string with CoT instructions
+        """
+        return zero_shot_cot_prompt
 
-{ambiguity_definitions}
+    @staticmethod
+    def create_system_prompt_few_shot_cot() -> str:
+        """Create few-shot Chain-of-Thought system prompt.
 
-
-**IMPORTANT**: 
-- Only flag ambiguities that are REAL and MEANINGFUL - ambiguities that would prevent accurate interpretation or significantly change the answer
-- Minor or insignificant ambiguities should NOT be flagged
-- If examples are provided in the query (e.g., "such as X or Y"), the meaning is clarified - do NOT flag as LEXICAL
-- Broad terms with commonly accepted meanings (e.g., "older adults" = 65+, "seniors") are NOT ambiguous unless specific precision is required
-- If the query is reasonably clear despite minor potential ambiguities, return ["NONE"]
-- Default to ["NONE"] unless you find a genuine, substantial ambiguity
-
-
-**Examples of CLEAR queries (should return ["NONE"]):**
-- "What are the evidence-based balance training programs for preventing falls in community-dwelling older adults aged 65 and above?" (specific population, intervention, and setting)
-- "What are the non-surgical, evidence-based treatments for chronic low back pain in adults?" (clear population and intervention type)
-- "What is the recommended dosage of vitamin D supplementation to reduce fall incidence in postmenopausal women?" (specific intervention, population, and outcome)
-- "Which strength training exercises targeting lower extremity muscles are most effective in reducing falls among frail elderly persons?" (specific intervention and population)
-- "What are the classic and atypical symptoms of a myocardial infarction in women over the age of 50?" (specific condition, population, and outcomes)
-
-
-**Examples of AMBIGUOUS queries (one per type):**
-- "Where can I find a good screen for eye health?" (LEXICAL - computer monitor vs screening test)
-- "How fast should I run to lose weight?" (SEMANTIC - speed? frequency? duration? intensity zone?)
-- "I bought a blood pressure cuff and a heart rate monitor. It said my resting heart rate was 95." (REFERENCE - which device is 'it'?)
-- "Find the price of Samsung Chromecast." (UNFAMILIAR - Samsung doesn't make Chromecast, Google does)
-- "List the best high-fiber foods that are completely free of carbohydrates." (CONTRADICTION - fiber IS a carbohydrate)
-
-
-Your task are as follows, think step by step, 
-1. Analyze the given query carefully
-2. Check if the query matches any of the ambiguity types above
-3. If it matches one or more types, list them; if it matches none, return ["NONE"]
-4. Provide a brief (1-2 sentence) explanation of your reasoning
-5. Output your analysis in the specified JSON format
-
-
-You must respond with a JSON object containing:
-- ambiguity_types: a list of applicable ambiguity type strings (e.g., ["LEXICAL", "SEMANTIC"]) or ["NONE"] if not ambiguous
-- reasoning: a concise (1-2 sentence) explanation of why these types apply or why the query is clear"""
+        Returns:
+            System prompt string with few-shot CoT examples
+        """
+        return few_shot_cot_prompt
 
     @staticmethod
     def create_user_prompt(query: str) -> str:
@@ -72,24 +229,38 @@ You must respond with a JSON object containing:
         Returns:
             Formatted user prompt
         """
-        return f"""Query: "{query}"
-
-What type(s) of ambiguity are present in this query? If the query is clear and unambiguous, return ["NONE"]. Respond with a JSON object containing the ambiguity_types list and your reasoning."""
+        return f'Query: "{query}'
 
     @staticmethod
-    def create_messages(query: str) -> list:
+    def create_messages(query: str, strategy: str = "zero_shot_cot") -> list:
         """Create the full message list for the model.
 
         Args:
             query: The ambiguous query to classify
+            strategy: Prompting strategy to use: "zero_shot", "few_shot", "zero_shot_cot", or "few_shot_cot"
 
         Returns:
             List of message dicts in OpenAI format
         """
+        if strategy == "few_shot":
+            system_prompt = (
+                AmbiguityClassificationPrompt.create_system_prompt_few_shot()
+            )
+        elif strategy == "zero_shot":
+            system_prompt = AmbiguityClassificationPrompt.create_system_prompt()
+        elif strategy == "few_shot_cot":
+            system_prompt = (
+                AmbiguityClassificationPrompt.create_system_prompt_few_shot_cot()
+            )
+        else:  # "zero_shot_cot" (default)
+            system_prompt = (
+                AmbiguityClassificationPrompt.create_system_prompt_zero_shot_cot()
+            )
+
         return [
             {
                 "role": "system",
-                "content": AmbiguityClassificationPrompt.create_system_prompt(),
+                "content": system_prompt + output_format_sample,
             },
             {
                 "role": "user",
