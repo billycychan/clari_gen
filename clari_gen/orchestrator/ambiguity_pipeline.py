@@ -11,6 +11,15 @@ from ..prompts import (
     ClarificationValidationPrompt,
     QueryReformulationPrompt,
 )
+from ..prompts.clarification_generation import (
+    BinaryDetectionPrompt,
+    ClarificationStandardPrompt,
+    ClarificationATStandardPrompt,
+    ClarificationCoTPrompt,
+    ClarificationATCoTPrompt,
+    ClarificationValidationPrompt,
+    QueryReformulationPrompt,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -172,13 +181,13 @@ class AmbiguityPipeline:
             "Step 2: Generating clarifying question with embedded classification"
         )
 
-        messages = ClarificationGenerationPrompt.create_messages(query.original_query)
+        messages = ClarificationATStandardPrompt.create_messages(query.original_query)
         response = self.large_model.generate_clarification(
             messages,
-            response_format=ClarificationGenerationPrompt.get_response_schema(),
+            response_format=ClarificationATStandardPrompt.get_response_schema(),
         )
 
-        data = ClarificationGenerationPrompt.parse_response(response)
+        data = ClarificationATStandardPrompt.parse_response(response)
 
         # Populate ambiguity types from the generation response
         query.ambiguity_types = [AmbiguityType[t] for t in data["ambiguity_types"]]
