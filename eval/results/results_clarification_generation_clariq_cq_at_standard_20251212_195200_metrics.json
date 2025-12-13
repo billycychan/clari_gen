@@ -1,0 +1,17 @@
+{
+  "timestamp": "20251212_195200",
+  "dataset_path": "data/clariq_cq.tsv",
+  "method": "at_standard",
+  "k_mode": "fixed",
+  "k_value": 1,
+  "total_queries": 308,
+  "processed_queries": 0,
+  "summary": {
+    "mean": NaN,
+    "median": NaN,
+    "std": NaN,
+    "min": NaN,
+    "max": NaN
+  },
+  "error_count": 308
+}

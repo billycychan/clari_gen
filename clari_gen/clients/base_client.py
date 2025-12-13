@@ -81,7 +81,7 @@ class BaseVLLMClient:
             if response_format is not None:
                 json_schema = response_format.model_json_schema()
                 api_kwargs["extra_body"] = {"guided_json": json_schema}
-                logger.info(
+                logger.debug(
                     f"Using vLLM guided_json for schema: {response_format.__name__}"
                 )
                 logger.debug(f"JSON Schema: {json_schema}")
