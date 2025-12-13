@@ -98,7 +98,7 @@ Query: "{query}"
 Output:"""
 
     @staticmethod
-    def create_user_prompt(query: str, strategy: str = "few_shot") -> str:
+    def create_user_prompt(query: str, strategy: str = "zero_shot") -> str:
         """Create the user prompt for binary ambiguity detection.
 
         Args:
