@@ -36,7 +36,7 @@ class Query:
 
     # Ambiguity classification results
     is_ambiguous: Optional[bool] = None
-    ambiguity_types: List[AmbiguityType] = field(default_factory=list)
+    ambiguity_types: List[str] = field(default_factory=list)
     ambiguity_reasoning: Optional[str] = None
 
     # Clarification
@@ -58,9 +58,7 @@ class Query:
             "original_query": self.original_query,
             "status": self.status.value,
             "is_ambiguous": self.is_ambiguous,
-            "ambiguity_types": [
-                ambiguity_type.value for ambiguity_type in self.ambiguity_types
-            ],
+            "ambiguity_types": self.ambiguity_types,
             "ambiguity_reasoning": self.ambiguity_reasoning,
             "clarifying_question": self.clarifying_question,
             "user_clarification": self.user_clarification,

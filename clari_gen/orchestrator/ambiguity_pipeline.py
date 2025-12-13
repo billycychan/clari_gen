@@ -197,7 +197,7 @@ class AmbiguityPipeline:
         data = self.clarification_prompt_class.parse_response(response)
 
         # Populate ambiguity types from the generation response
-        query.ambiguity_types = [AmbiguityType[t] for t in data["ambiguity_types"]]
+        query.ambiguity_types = data["ambiguity_types"]
         query.ambiguity_reasoning = data["reasoning"]
         query.clarifying_question = data["clarifying_question"]
 
@@ -219,7 +219,7 @@ class AmbiguityPipeline:
         query.status = QueryStatus.VALIDATING_CLARIFICATION
         logger.info("Step 3: Validating user clarification")
 
-        ambiguity_types_strs = [t.value for t in query.ambiguity_types]
+        ambiguity_types_strs = query.ambiguity_types
         messages = ClarificationValidationPrompt.create_messages(
             query.original_query,
             ambiguity_types_strs,
@@ -256,7 +256,7 @@ class AmbiguityPipeline:
         query.status = QueryStatus.REFORMULATING
         logger.info("Step 4: Reformulating query")
 
-        ambiguity_types_strs = [t.value for t in query.ambiguity_types]
+        ambiguity_types_strs = query.ambiguity_types
         messages = QueryReformulationPrompt.create_messages(
             query.original_query,
             ambiguity_types_strs,
