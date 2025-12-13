@@ -117,6 +117,43 @@ class AmbiguityPipeline:
             logger.error(f"Error processing query: {e}", exc_info=True)
             return query
 
+    def continue_with_clarification(self, query_dict: dict, user_clarification: str) -> Query:
+        """Continue processing a query with user's clarification (stateless mode).
+
+        Args:
+            query_dict: Dictionary representation of the Query object (context)
+            user_clarification: Use's answer to the clarifying question
+
+        Returns:
+            Query object with full processing state and final output
+        """
+        # Reconstruct query object from dictionary
+        query = Query(**query_dict)
+        
+        # Ensure it was waiting for clarification
+        # Note: We rely on the caller to handle state management, but good to check
+        # if query.status != QueryStatus.AWAITING_CLARIFICATION:
+        #     logger.warning(f"Resuming query from status {query.status}, expected AWAITING_CLARIFICATION")
+
+        query.user_clarification = user_clarification
+        query.status = QueryStatus.CLARIFICATION_RECEIVED
+        
+        logger.info(f"Resuming query: {query.original_query[:50]}... with clarification")
+
+        try:
+            # Reformulate query
+            query = self._reformulate_query(query)
+            query.status = QueryStatus.COMPLETED
+            logger.info("Query processing completed successfully")
+            return query
+
+        except Exception as e:
+            query.status = QueryStatus.ERROR
+            query.error_message = str(e)
+            logger.error(f"Error resuming query: {e}", exc_info=True)
+            return query
+
+
     def _detect_binary_ambiguity(self, query: Query) -> Query:
         """Detect if query is ambiguous using binary classification with the small model.
 
