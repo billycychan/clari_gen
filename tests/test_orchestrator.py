@@ -99,7 +99,6 @@ class TestAmbiguityPipeline:
         assert result.status == QueryStatus.COMPLETED
         assert result.is_ambiguous == True
         assert AmbiguityType.REFERENCE in result.ambiguity_types
-        assert result.clarification_is_valid == True
         assert result.reformulated_query is not None
         assert "gardening" in result.get_final_output().lower()
 

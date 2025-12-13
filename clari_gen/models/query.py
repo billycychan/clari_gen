@@ -17,8 +17,6 @@ class QueryStatus(str, Enum):
     AMBIGUOUS = "AMBIGUOUS"
     AWAITING_CLARIFICATION = "AWAITING_CLARIFICATION"
     CLARIFICATION_RECEIVED = "CLARIFICATION_RECEIVED"
-    VALIDATING_CLARIFICATION = "VALIDATING_CLARIFICATION"
-    CLARIFICATION_INVALID = "CLARIFICATION_INVALID"
     REFORMULATING = "REFORMULATING"
     COMPLETED = "COMPLETED"
     ERROR = "ERROR"
@@ -42,8 +40,6 @@ class Query:
     # Clarification
     clarifying_question: Optional[str] = None
     user_clarification: Optional[str] = None
-    clarification_is_valid: Optional[bool] = None
-    clarification_validation_feedback: Optional[str] = None
 
     # Output
     reformulated_query: Optional[str] = None
@@ -62,8 +58,6 @@ class Query:
             "ambiguity_reasoning": self.ambiguity_reasoning,
             "clarifying_question": self.clarifying_question,
             "user_clarification": self.user_clarification,
-            "clarification_is_valid": self.clarification_is_valid,
-            "clarification_validation_feedback": self.clarification_validation_feedback,
             "reformulated_query": self.reformulated_query,
             "created_at": self.created_at.isoformat(),
             "error_message": self.error_message,
