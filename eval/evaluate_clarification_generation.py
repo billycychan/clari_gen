@@ -18,6 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from clari_gen.clients.large_model_client import LargeModelClient
 from clari_gen.prompts.clarification_generation.at_cot import ClarificationATCoTPrompt
 from clari_gen.prompts.clarification_generation.at_standard import ClarificationATStandardPrompt
+from clari_gen.prompts.clarification_generation.vanilla import ClarificationVanillaPrompt
 
 # Configure logging
 logging.basicConfig(
@@ -146,9 +147,9 @@ def main():
     parser.add_argument("--workers", type=int, default=10, help="Number of parallel workers for generation")
     parser.add_argument(
         "--prompt_type", 
-        choices=["all", "standard", "cot"], 
+        choices=["all", "standard", "cot", "vanilla"], 
         default="all", 
-        help="Prompt method to evaluate (standard=AT_Standard, cot=AT_CoT)"
+        help="Prompt method to evaluate (standard=AT_Standard, cot=AT_CoT, vanilla=Vanilla)"
     )
     
     args = parser.parse_args()
@@ -170,6 +171,7 @@ def main():
     all_methods = [
         ("AT_Standard", ClarificationATStandardPrompt),
         ("AT_CoT", ClarificationATCoTPrompt),
+        ("Vanilla", ClarificationVanillaPrompt),
     ]
     
     methods = []
@@ -179,6 +181,8 @@ def main():
         methods = [m for m in all_methods if m[0] == "AT_Standard"]
     elif args.prompt_type == "cot":
         methods = [m for m in all_methods if m[0] == "AT_CoT"]
+    elif args.prompt_type == "vanilla":
+        methods = [m for m in all_methods if m[0] == "Vanilla"]
 
     for index, row in tqdm(grouped_df.iterrows(), total=len(grouped_df), desc="Evaluating queries"):
         query = row["query"]
@@ -215,7 +219,7 @@ def main():
     results_df = pd.DataFrame(results)
     
     data_filename = os.path.splitext(os.path.basename(args.data_path))[0]
-    output_filename = f"{data_filename}_clarification_evaluation_results.csv"
+    output_filename = f"{data_filename}_{args.prompt_type}_clarification_evaluation_results.csv"
     output_path = os.path.join(args.output_dir, output_filename)
     
     results_df.to_csv(output_path, index=False)

@@ -12,6 +12,7 @@ from ..prompts import (
     ClarificationValidationPrompt,
     QueryReformulationPrompt,
 )
+from ..prompts.clarification_generation.vanilla import ClarificationVanillaPrompt
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +45,11 @@ class AmbiguityPipeline:
             self.clarification_prompt_class = ClarificationATCoTPrompt
         elif clarification_strategy == "at_standard":
             self.clarification_prompt_class = ClarificationATStandardPrompt
+        elif clarification_strategy == "vanilla":
+            self.clarification_prompt_class = ClarificationVanillaPrompt
         else:
             raise ValueError(
-                f"Invalid clarification strategy: {clarification_strategy}. Must be 'at_standard' or 'at_cot'"
+                f"Invalid clarification strategy: {clarification_strategy}. Must be 'at_standard', 'at_cot', or 'vanilla'"
             )
 
         logger.info(
@@ -197,11 +200,11 @@ class AmbiguityPipeline:
         data = self.clarification_prompt_class.parse_response(response)
 
         # Populate ambiguity types from the generation response
-        query.ambiguity_types = data["ambiguity_types"]
-        query.ambiguity_reasoning = data["reasoning"]
+        query.ambiguity_types = data.get("ambiguity_types", [])
+        query.ambiguity_reasoning = data.get("reasoning", "")
         query.clarifying_question = data["clarifying_question"]
-
-        types_str = ", ".join(data["ambiguity_types"])
+        
+        types_str = ", ".join(query.ambiguity_types)
         logger.info(f"Identified ambiguity types: {types_str}")
         logger.info(f"Generated question: {query.clarifying_question}")
 

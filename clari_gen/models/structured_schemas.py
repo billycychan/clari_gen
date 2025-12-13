@@ -27,6 +27,15 @@ class ClarificationResponse(BaseModel):
     )
 
 
+class VanillaClarificationResponse(BaseModel):
+    """Schema for vanilla clarification generation response."""
+
+    original_query: str = Field(description="The original query that was ambiguous")
+    clarifying_question: str = Field(
+        description="The generated clarifying question to resolve the ambiguity"
+    )
+
+
 class AmbiguityClassificationResponse(BaseModel):
     """Schema for ambiguity classification response."""
 
