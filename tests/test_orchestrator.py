@@ -15,7 +15,7 @@ class TestAmbiguityPipeline:
         """Test that a clear query passes through without clarification."""
         # Mock clients
         small_model = Mock(spec=SmallModelClient)
-        small_model.classify_ambiguity.return_value = '{"ambiguity_types": ["NONE"], "reasoning": "Query is clear and unambiguous."}'
+        small_model.detect_binary_ambiguity.return_value = '{"is_ambiguous": false}'
 
         large_model = Mock(spec=LargeModelClient)
 
@@ -31,20 +31,21 @@ class TestAmbiguityPipeline:
         assert result.get_final_output() == "What is 2 + 2?"
 
         # Large model should not be called for non-ambiguous queries
-        large_model.classify_ambiguity.assert_not_called()
-        large_model.generate_clarifying_question.assert_not_called()
+        large_model.generate_clarification.assert_not_called()
+        large_model.validate_clarification.assert_not_called()
 
     def test_ambiguous_query_without_callback(self):
         """Test that an ambiguous query stops at AWAITING_CLARIFICATION without callback."""
         # Mock clients
         small_model = Mock(spec=SmallModelClient)
-        small_model.classify_ambiguity.return_value = '{"ambiguity_types": ["SEMANTIC"], "reasoning": "This query lacks context."}'
+        small_model.detect_binary_ambiguity.return_value = '{"is_ambiguous": true}'
 
         large_model = Mock(spec=LargeModelClient)
-        large_model.generate_clarifying_question.return_value = """
+        large_model.generate_clarification.return_value = """
         {
             "original_query": "When did he land on the moon?",
-            "ambiguity_type": "SEMANTIC",
+            "ambiguity_types": ["SEMANTIC"],
+            "reasoning": "This query lacks context.",
             "clarifying_question": "Who are you referring to?"
         }
         """
@@ -67,19 +68,18 @@ class TestAmbiguityPipeline:
         """Test full pipeline with valid clarification."""
         # Mock clients
         small_model = Mock(spec=SmallModelClient)
-        small_model.classify_ambiguity.return_value = '{"ambiguity_types": ["WHO"], "reasoning": "Missing information about who the mother is."}'
+        small_model.detect_binary_ambiguity.return_value = '{"is_ambiguous": true}'
 
         large_model = Mock(spec=LargeModelClient)
-        large_model.generate_clarifying_question.return_value = """
+        large_model.generate_clarification.return_value = """
         {
             "original_query": "Suggest me some gifts for my mother.",
-            "ambiguity_type": "WHO",
+            "ambiguity_types": ["REFERENCE"],
+            "reasoning": "Missing information about who the mother is.",
             "clarifying_question": "What are your mother's interests or hobbies?"
         }
         """
-        large_model.validate_clarification.return_value = (
-            "VALID\nThe clarification provides specific information."
-        )
+        large_model.validate_clarification.return_value = '{"is_valid": true, "explanation": "The clarification provides specific information."}'
         large_model.reformulate_query.return_value = "Suggest me some gifts for my mother who enjoys gardening and reading mystery novels."
 
         pipeline = AmbiguityPipeline(
@@ -98,7 +98,7 @@ class TestAmbiguityPipeline:
 
         assert result.status == QueryStatus.COMPLETED
         assert result.is_ambiguous == True
-        assert AmbiguityType.WHO in result.ambiguity_types
+        assert AmbiguityType.REFERENCE in result.ambiguity_types
         assert result.clarification_is_valid == True
         assert result.reformulated_query is not None
         assert "gardening" in result.get_final_output().lower()
@@ -106,20 +106,21 @@ class TestAmbiguityPipeline:
     def test_invalid_clarification_retry(self):
         """Test that invalid clarifications trigger retry."""
         small_model = Mock(spec=SmallModelClient)
-        small_model.classify_ambiguity.return_value = '{"ambiguity_types": ["WHEN"], "reasoning": "Missing temporal information."}'
+        small_model.detect_binary_ambiguity.return_value = '{"is_ambiguous": true}'
 
         large_model = Mock(spec=LargeModelClient)
-        large_model.generate_clarifying_question.return_value = """
+        large_model.generate_clarification.return_value = """
         {
             "original_query": "How many goals did Argentina score?",
-            "ambiguity_type": "WHEN",
+            "ambiguity_types": ["REFERENCE"],
+            "reasoning": "Missing temporal information.",
             "clarifying_question": "Which World Cup are you asking about?"
         }
         """
         # First validation: INVALID, Second: VALID
         large_model.validate_clarification.side_effect = [
-            "INVALID\nToo vague.",
-            "VALID\nSpecific information provided.",
+            '{"is_valid": false, "explanation": "Too vague."}',
+            '{"is_valid": true, "explanation": "Specific information provided."}',
         ]
         large_model.reformulate_query.return_value = (
             "How many goals did Argentina score in the 2022 FIFA World Cup?"
@@ -152,63 +153,52 @@ class TestPromptParsing:
 
     def test_classification_parsing(self):
         """Test parsing of classification responses."""
-        from clari_gen.prompts import AmbiguityClassificationPrompt
+        from clari_gen.prompts import BinaryDetectionPrompt
 
-        response = '{"ambiguity_types": ["LEXICAL"], "reasoning": "The term \'source\' has multiple meanings."}'
-        ambiguity_types, reasoning = AmbiguityClassificationPrompt.parse_response(
-            response
-        )
+        response = '{"is_ambiguous": false}'
+        data = BinaryDetectionPrompt.parse_response(response)
 
-        assert ambiguity_types == ["LEXICAL"]
-        assert "multiple meanings" in reasoning
+        assert data["is_ambiguous"] == False
 
-        # Test multiple types
-        response_multi = '{"ambiguity_types": ["LEXICAL", "SEMANTIC"], "reasoning": "Multiple issues present."}'
-        ambiguity_types, reasoning = AmbiguityClassificationPrompt.parse_response(
-            response_multi
-        )
+        # Test ambiguous
+        response = '{"is_ambiguous": true}'
+        data = BinaryDetectionPrompt.parse_response(response)
 
-        assert ambiguity_types == ["LEXICAL", "SEMANTIC"]
-        assert "Multiple issues" in reasoning
-
-        # Test NONE type for non-ambiguous queries
-        response_none = '{"ambiguity_types": ["NONE"], "reasoning": "Query is clear and unambiguous."}'
-        ambiguity_types, reasoning = AmbiguityClassificationPrompt.parse_response(
-            response_none
-        )
-
-        assert ambiguity_types == ["NONE"]
-        assert "clear" in reasoning.lower()
+        assert data["is_ambiguous"] == True
 
     def test_clarification_json_parsing(self):
         """Test parsing of JSON clarification responses."""
-        from clari_gen.prompts import ClarificationGenerationPrompt
+        from clari_gen.prompts.clarification_generation import ClarificationATCoTPrompt
 
         response = """
         {
             "original_query": "Test query",
-            "ambiguity_type": "WHO",
+            "ambiguity_types": ["WHO"],
+            "reasoning": "Missing information.",
             "clarifying_question": "Who are you asking about?"
         }
         """
 
-        data = ClarificationGenerationPrompt.parse_response(response)
+        data = ClarificationATCoTPrompt.parse_response(response)
 
         assert data["original_query"] == "Test query"
-        assert data["ambiguity_type"] == "WHO"
+        assert data["ambiguity_types"] == ["WHO"]
+        assert "Missing" in data["reasoning"]
         assert "Who" in data["clarifying_question"]
 
     def test_validation_parsing(self):
         """Test parsing of validation responses."""
         from clari_gen.prompts import ClarificationValidationPrompt
 
-        response = "VALID\nProvides sufficient information."
+        response = (
+            '{"is_valid": true, "explanation": "Provides sufficient information."}'
+        )
         is_valid, explanation = ClarificationValidationPrompt.parse_response(response)
 
         assert is_valid == True
         assert "sufficient" in explanation
 
-        response = "INVALID\nToo vague."
+        response = '{"is_valid": false, "explanation": "Too vague."}'
         is_valid, explanation = ClarificationValidationPrompt.parse_response(response)
 
         assert is_valid == False
