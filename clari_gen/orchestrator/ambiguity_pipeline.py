@@ -9,7 +9,6 @@ from ..prompts import (
     BinaryDetectionPrompt,
     ClarificationATStandardPrompt,
     ClarificationATCoTPrompt,
-    ClarificationValidationPrompt,
     QueryReformulationPrompt,
 )
 from ..prompts.clarification_generation.vanilla import ClarificationVanillaPrompt
@@ -100,48 +99,16 @@ class AmbiguityPipeline:
                 )
                 return query
 
-            # Attempt to get and validate clarification
-            attempts = 0
-            while attempts < self.max_clarification_attempts:
-                attempts += 1
-                logger.info(
-                    f"Clarification attempt {attempts}/{self.max_clarification_attempts}"
-                )
+            # Attempt to get clarification
+            # Get user's clarification
+            user_clarification = clarification_callback(query.clarifying_question)
+            query.user_clarification = user_clarification
+            query.status = QueryStatus.CLARIFICATION_RECEIVED
 
-                # Get user's clarification
-                user_clarification = clarification_callback(query.clarifying_question)
-                query.user_clarification = user_clarification
-                query.status = QueryStatus.CLARIFICATION_RECEIVED
-
-                # Validate the clarification
-                query = self._validate_clarification(query)
-
-                if query.clarification_is_valid:
-                    # Clarification is valid - reformulate query
-                    query = self._reformulate_query(query)
-                    query.status = QueryStatus.COMPLETED
-                    logger.info("Query processing completed successfully")
-                    return query
-                else:
-                    # Invalid clarification - ask again if attempts remain
-                    if attempts < self.max_clarification_attempts:
-                        logger.warning(
-                            f"Clarification invalid: {query.clarification_validation_feedback}"
-                        )
-                        # Update clarifying question with feedback
-                        query.clarifying_question = (
-                            f"{query.clarifying_question}\n\n"
-                            f"(Your previous answer was unclear: {query.clarification_validation_feedback}. "
-                            f"Please try again.)"
-                        )
-                        query.status = QueryStatus.AWAITING_CLARIFICATION
-
-            # Max attempts reached with invalid clarification
-            query.status = QueryStatus.ERROR
-            query.error_message = (
-                "Maximum clarification attempts reached with invalid responses"
-            )
-            logger.error(query.error_message)
+            # Reformulate query
+            query = self._reformulate_query(query)
+            query.status = QueryStatus.COMPLETED
+            logger.info("Query processing completed successfully")
             return query
 
         except Exception as e:
@@ -210,42 +177,7 @@ class AmbiguityPipeline:
 
         return query
 
-    def _validate_clarification(self, query: Query) -> Query:
-        """Validate the user's clarification using the large model.
 
-        Args:
-            query: Query object to process
-
-        Returns:
-            Updated Query object with validation results
-        """
-        query.status = QueryStatus.VALIDATING_CLARIFICATION
-        logger.info("Step 3: Validating user clarification")
-
-        ambiguity_types_strs = query.ambiguity_types
-        messages = ClarificationValidationPrompt.create_messages(
-            query.original_query,
-            ambiguity_types_strs,
-            query.clarifying_question,
-            query.user_clarification,
-        )
-        response = self.large_model.validate_clarification(
-            messages,
-            response_format=ClarificationValidationPrompt.get_response_schema(),
-        )
-
-        is_valid, explanation = ClarificationValidationPrompt.parse_response(response)
-
-        query.clarification_is_valid = is_valid
-        query.clarification_validation_feedback = explanation
-
-        if is_valid:
-            logger.info(f"Clarification VALID: {explanation}")
-        else:
-            query.status = QueryStatus.CLARIFICATION_INVALID
-            logger.warning(f"Clarification INVALID: {explanation}")
-
-        return query
 
     def _reformulate_query(self, query: Query) -> Query:
         """Reformulate the query based on the user's clarification.

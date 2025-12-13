@@ -14,7 +14,7 @@ class LargeModelClient(BaseVLLMClient):
 
     # Temperature settings for different tasks
     CLARIFICATION_TEMPERATURE = 0.7  # Higher for natural question generation
-    VALIDATION_TEMPERATURE = 0.3  # Low for consistent validation
+
     REFORMULATION_TEMPERATURE = 0.7  # Higher for natural query reformulation
 
     DEFAULT_MAX_TOKENS = 512
@@ -130,33 +130,6 @@ class LargeModelClient(BaseVLLMClient):
         logger.info(f"Clarification generation response: {response}")
         return response
 
-    def validate_clarification(
-        self, messages: List[dict], response_format: Type[BaseModel] = None
-    ) -> str:
-        """Validate that a user's clarification resolves the ambiguity.
-
-        Args:
-            messages: List of message dicts with system and user prompts
-            response_format: Optional Pydantic model for structured output using guided_json
-
-        Returns:
-            The model's response with validity and explanation (as JSON if schema provided)
-
-        Raises:
-            Exception: If the API call fails
-        """
-        logger.info("Validating user clarification with 70B model")
-
-        response = self.generate(
-            messages=messages,
-            temperature=self.VALIDATION_TEMPERATURE,
-            max_tokens=256,
-            top_p=0.95,
-            response_format=response_format,
-        )
-
-        logger.info(f"Validation response: {response[:100]}...")
-        return response
 
     def reformulate_query(self, messages: List[dict]) -> str:
         """Reformulate a query based on user clarification.

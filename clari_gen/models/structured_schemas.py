@@ -47,12 +47,3 @@ class AmbiguityClassificationResponse(BaseModel):
     )
 
 
-class ValidationResponse(BaseModel):
-    """Schema for clarification validation response."""
-
-    is_valid: bool = Field(
-        description="Whether the clarification is valid and resolves the ambiguity"
-    )
-    explanation: str = Field(
-        description="Explanation of why the clarification is valid or invalid"
-    )

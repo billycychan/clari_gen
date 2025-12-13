@@ -2,7 +2,7 @@
 
 from .binary_detection import BinaryDetectionPrompt
 from .query_reformulation import QueryReformulationPrompt
-from .clarification_validation import ClarificationValidationPrompt
+
 from .clarification_generation import (
     ClarificationATStandardPrompt,
     ClarificationATCoTPrompt,
@@ -13,5 +13,4 @@ __all__ = [
     "ClarificationATStandardPrompt",
     "ClarificationATCoTPrompt",
     "QueryReformulationPrompt",
-    "ClarificationValidationPrompt",
 ]
