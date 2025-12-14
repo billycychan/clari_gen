@@ -118,12 +118,12 @@ Output:"""
             )
 
     @staticmethod
-    def create_messages(query: str, strategy: str = "few_shot") -> list:
+    def create_messages(query: str, strategy: str = "zero_shot") -> list:
         """Create the full message list for the model.
 
         Args:
             query: The query to analyze
-            strategy: Prompting strategy - "zero_shot" or "few_shot" (default: "few_shot")
+            strategy: Prompting strategy - "zero_shot" or "few_shot" (default: "zero_shot")
 
         Returns:
             List of message dicts in OpenAI format
