@@ -105,10 +105,12 @@ class AmbiguityPipeline:
             query.user_clarification = user_clarification
             query.status = QueryStatus.CLARIFICATION_RECEIVED
 
-            # Reformulate query
+            # Reformulate query (now returns AWAITING_CONFIRMATION)
             query = self._reformulate_query(query)
-            query.status = QueryStatus.COMPLETED
-            logger.info("Query processing completed successfully")
+
+            # Only mark as completed if we have a confirmation callback (interactive mode)
+            # For API mode, this will stay at AWAITING_CONFIRMATION
+            logger.info("Query reformulation completed, awaiting confirmation")
             return query
 
         except Exception as e:
@@ -117,7 +119,9 @@ class AmbiguityPipeline:
             logger.error(f"Error processing query: {e}", exc_info=True)
             return query
 
-    def continue_with_clarification(self, query_dict: dict, user_clarification: str) -> Query:
+    def continue_with_clarification(
+        self, query_dict: dict, user_clarification: str
+    ) -> Query:
         """Continue processing a query with user's clarification (stateless mode).
 
         Args:
@@ -129,7 +133,7 @@ class AmbiguityPipeline:
         """
         # Reconstruct query object from dictionary
         query = Query(**query_dict)
-        
+
         # Ensure it was waiting for clarification
         # Note: We rely on the caller to handle state management, but good to check
         # if query.status != QueryStatus.AWAITING_CLARIFICATION:
@@ -137,14 +141,15 @@ class AmbiguityPipeline:
 
         query.user_clarification = user_clarification
         query.status = QueryStatus.CLARIFICATION_RECEIVED
-        
-        logger.info(f"Resuming query: {query.original_query[:50]}... with clarification")
+
+        logger.info(
+            f"Resuming query: {query.original_query[:50]}... with clarification"
+        )
 
         try:
-            # Reformulate query
+            # Reformulate query (returns AWAITING_CONFIRMATION)
             query = self._reformulate_query(query)
-            query.status = QueryStatus.COMPLETED
-            logger.info("Query processing completed successfully")
+            logger.info("Query reformulation completed, awaiting confirmation")
             return query
 
         except Exception as e:
@@ -152,7 +157,6 @@ class AmbiguityPipeline:
             query.error_message = str(e)
             logger.error(f"Error resuming query: {e}", exc_info=True)
             return query
-
 
     def _detect_binary_ambiguity(self, query: Query) -> Query:
         """Detect if query is ambiguous using binary classification with the small model.
@@ -207,14 +211,12 @@ class AmbiguityPipeline:
         query.ambiguity_types = data.get("ambiguity_types", [])
         query.ambiguity_reasoning = data.get("reasoning", "")
         query.clarifying_question = data["clarifying_question"]
-        
+
         types_str = ", ".join(query.ambiguity_types)
         logger.info(f"Identified ambiguity types: {types_str}")
         logger.info(f"Generated question: {query.clarifying_question}")
 
         return query
-
-
 
     def _reformulate_query(self, query: Query) -> Query:
         """Reformulate the query based on the user's clarification.
@@ -241,7 +243,70 @@ class AmbiguityPipeline:
 
         logger.info(f"Reformulated query: {query.reformulated_query}")
 
+        # Set status to awaiting confirmation instead of completed
+        query.status = QueryStatus.AWAITING_CONFIRMATION
+
         return query
+
+    def confirm_reformulation(
+        self, query_dict: dict, confirmation: str, alternative_query: str = None
+    ) -> Query:
+        """Handle user confirmation of the reformulated query.
+
+        Args:
+            query_dict: Dictionary representation of the Query object (context)
+            confirmation: User's confirmation response ("yes" or "no")
+            alternative_query: If confirmation is "no", the user's alternative query
+
+        Returns:
+            Query object with confirmed query and COMPLETED status
+        """
+        # Reconstruct query object from dictionary
+        query = Query(**query_dict)
+
+        logger.info(
+            f"Processing confirmation for query: {query.original_query[:50]}..."
+        )
+
+        try:
+            # Normalize confirmation to lowercase
+            confirmation = confirmation.lower().strip()
+
+            if confirmation in ["yes", "y"]:
+                # User accepted the reformulated query
+                query.confirmed_query = query.reformulated_query
+                logger.info(
+                    f"User accepted reformulated query: {query.confirmed_query}"
+                )
+            elif confirmation in ["no", "n"]:
+                # User provided alternative query
+                if alternative_query and alternative_query.strip():
+                    query.confirmed_query = alternative_query.strip()
+                    logger.info(
+                        f"User provided alternative query: {query.confirmed_query}"
+                    )
+                else:
+                    # No alternative provided, use reformulated as fallback
+                    query.confirmed_query = query.reformulated_query
+                    logger.warning(
+                        "User said 'no' but didn't provide alternative, using reformulated query"
+                    )
+            else:
+                # Invalid response, default to reformulated query
+                query.confirmed_query = query.reformulated_query
+                logger.warning(
+                    f"Invalid confirmation response '{confirmation}', using reformulated query"
+                )
+
+            query.status = QueryStatus.COMPLETED
+            logger.info("Query confirmation completed successfully")
+            return query
+
+        except Exception as e:
+            query.status = QueryStatus.ERROR
+            query.error_message = str(e)
+            logger.error(f"Error confirming query: {e}", exc_info=True)
+            return query
 
     def test_connections(self) -> dict:
         """Test connections to both model servers.

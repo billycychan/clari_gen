@@ -53,6 +53,28 @@ def interactive_mode(pipeline: AmbiguityPipeline):
             query_text, clarification_callback=get_clarification
         )
 
+        # Handle confirmation if needed
+        if result.status.value == "AWAITING_CONFIRMATION":
+            print("\n" + "=" * 70)
+            print("CONFIRMATION NEEDED")
+            print("=" * 70)
+            print(f"\nReformulated Query: {result.reformulated_query}")
+            print("===")
+            print(
+                "Is this the query you want? Please answer yes or no. If no, provide the alternative query."
+            )
+            confirmation = input("\nYour answer (yes/no): ").strip()
+
+            alternative = None
+            if confirmation.lower() in ["no", "n"]:
+                alternative = input("Enter your alternative query: ").strip()
+
+            result = pipeline.confirm_reformulation(
+                query_dict=result.to_dict(),
+                confirmation=confirmation,
+                alternative_query=alternative,
+            )
+
         # Display results
         print("\n" + "=" * 70)
         print("RESULT")
@@ -62,12 +84,14 @@ def interactive_mode(pipeline: AmbiguityPipeline):
             print(f"\n❌ Error: {result.error_message}")
         elif result.is_ambiguous:
             print(f"\n✓ Original query: {result.original_query}")
-            types_str = ", ".join([t if isinstance(t, str) else t.value for t in result.ambiguity_types])
+            types_str = ", ".join(
+                [t if isinstance(t, str) else t.value for t in result.ambiguity_types]
+            )
             print(f"✓ Ambiguity type(s): {types_str}")
             print(f"✓ Reasoning: {result.ambiguity_reasoning}")
             if result.user_clarification:
                 print(f"✓ Your clarification: {result.user_clarification}")
-            print(f"\n🎯 Reformulated query: {result.get_final_output()}")
+            print(f"\n🎯 Final query: {result.get_final_output()}")
         else:
             print(f"\n✓ Query is clear and unambiguous")
             print(f"\n🎯 Final query: {result.get_final_output()}")
@@ -96,7 +120,9 @@ def batch_mode(pipeline: AmbiguityPipeline, query_text: str, output_json: bool =
             sys.exit(1)
         elif result.status.value == "AWAITING_CLARIFICATION":
             print("Query is ambiguous and requires clarification:", file=sys.stderr)
-            types_str = ", ".join([t if isinstance(t, str) else t.value for t in result.ambiguity_types])
+            types_str = ", ".join(
+                [t if isinstance(t, str) else t.value for t in result.ambiguity_types]
+            )
             print(f"Type(s): {types_str}", file=sys.stderr)
             print(f"Question: {result.clarifying_question}", file=sys.stderr)
             sys.exit(2)

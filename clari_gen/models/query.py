@@ -18,6 +18,7 @@ class QueryStatus(str, Enum):
     AWAITING_CLARIFICATION = "AWAITING_CLARIFICATION"
     CLARIFICATION_RECEIVED = "CLARIFICATION_RECEIVED"
     REFORMULATING = "REFORMULATING"
+    AWAITING_CONFIRMATION = "AWAITING_CONFIRMATION"
     COMPLETED = "COMPLETED"
     ERROR = "ERROR"
 
@@ -43,6 +44,7 @@ class Query:
 
     # Output
     reformulated_query: Optional[str] = None
+    confirmed_query: Optional[str] = None
 
     # Metadata
     created_at: datetime = field(default_factory=datetime.now)
@@ -59,12 +61,17 @@ class Query:
             "clarifying_question": self.clarifying_question,
             "user_clarification": self.user_clarification,
             "reformulated_query": self.reformulated_query,
-            "created_at": self.created_at.isoformat(),
+            "confirmed_query": self.confirmed_query,
+            "created_at": (
+                self.created_at.isoformat()
+                if isinstance(self.created_at, datetime)
+                else self.created_at
+            ),
             "error_message": self.error_message,
         }
 
     def get_final_output(self) -> str:
-        """Get the final output query (original if not ambiguous, reformulated if ambiguous)."""
+        """Get the final output query (original if not ambiguous, confirmed if ambiguous)."""
         if not self.is_ambiguous:
             return self.original_query
-        return self.reformulated_query or self.original_query
+        return self.confirmed_query or self.reformulated_query or self.original_query
