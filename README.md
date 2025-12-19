@@ -3,9 +3,11 @@
 ClariGen is a multi-model pipeline for detecting ambiguous queries and generating clarifications. It leverages both small and large language models to identify ambiguity, classify its type, and generate clarifying questions or reformulations. The system is designed for research and practical applications in information retrieval, conversational AI, and question answering.
 
 ## Features
-- **Ambiguity Detection:** Uses a small LLM to detect if a query is ambiguous.
-- **Ambiguity Classification:** Classifies the type of ambiguity using a large LLM.
-- **Clarification Generation:** Generates clarifying questions or reformulated queries.
+- **Ambiguity Detection:** Uses a small, efficient LLM to quickly detect if a query is ambiguous.
+- **Ambiguity Classification & Clarification:** Simultaneously classifies the ambiguity type and generates a clarifying question using a large LLM.
+- **Query Reformulation:** Reformulates the original query based on the user's response.
+- **Interactive Confirmation:** Allows users to review and confirm the reformulated query.
+- **Flexible Strategies:** Supports multiple prompting strategies for clarification (Standard, Chain-of-Thought, Vanilla).
 - **Interactive CLI and Web UI:** Run interactively in the terminal or via a Streamlit web app.
 - **API Access:** FastAPI backend for programmatic access.
 
@@ -26,9 +28,24 @@ ClariGen is a multi-model pipeline for detecting ambiguous queries and generatin
 
 ## Usage
 ### CLI
-Run the main interface:
+Run the main interface in interactive mode:
 ```bash
 python -m clari_gen
+```
+
+Process a single query:
+```bash
+python -m clari_gen --query "Who won the championship?"
+```
+
+Process with a specific clarification strategy (at_standard, at_cot, or vanilla):
+```bash
+python -m clari_gen --query "..." --clarification-strategy at_cot
+```
+
+Test model server connections:
+```bash
+python -m clari_gen --test
 ```
 Or use the installed command:
 ```bash
@@ -49,6 +66,7 @@ uvicorn clari_gen.api.main:app --reload
 
 ## Project Structure
 - `clari_gen/` - Main package
+  - `ARCHITECTURE.md` - System architecture and flow diagrams
   - `main.py` - CLI entry point
   - `config.py` - Configuration management
   - `orchestrator/ambiguity_pipeline.py` - Main pipeline logic

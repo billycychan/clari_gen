@@ -218,7 +218,7 @@ Examples:
         "--clarification-strategy",
         type=str,
         default="at_standard",
-        choices=["at_standard", "at_cot"],
+        choices=["at_standard", "at_cot", "vanilla"],
         help="Strategy for generating clarifying questions: 'at_standard' (with ambiguity types) or 'at_cot' (with chain-of-thought reasoning) (default: at_standard)",
     )
 
