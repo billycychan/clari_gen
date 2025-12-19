@@ -1,0 +1,13 @@
+id	query	ambiguous_pct	clear_pct	total_runs	strategy
+1	How can individuals with Parkinson's disease reduce their fall risk, and are there specific strategies that work best for them?	100.0	0.0	100	few_shot
+2	How can individuals with Arthritis (specifically Osteoarthritis) reduce their fall risk, and are there specific strategies that work best for them?	100.0	0.0	100	few_shot
+3	How do common medications, such as those for high blood pressure or pain management, contribute to fall risk, and what precautions can seniors take?	100.0	0.0	100	few_shot
+4	What are the most effective exercises to improve balance and prevent falls, especially for seniors with limited mobility or strength? What about Tai Chi?	100.0	0.0	100	few_shot
+5	Is there a safe way to fall? How does one safely fall? (e.g., forwards or backwards, catch with hands or not)	100.0	0.0	100	few_shot
+6	Are there any vitamins recommended for strengthening bones? (e.g., vitamin D)	100.0	0.0	100	few_shot
+7	What are some simple and cost-effective home modifications to make living spaces safer for seniors at risk of falling?	100.0	0.0	100	few_shot
+8	What role do wearable devices, like fall-detection systems or smartwatches, play in preventing or managing falls for seniors? Are they effective tools?	100.0	0.0	100	few_shot
+9	After a fall and a serious injury like a broken hip, how can seniors regain mobility and prevent long-term inactivity that can further increase fall risk?	100.0	0.0	100	few_shot
+10	What can be done for fear of falling?	100.0	0.0	100	few_shot
+11	What/where are some local Ontario-based fall prevention programs?	100.0	0.0	100	few_shot
+12	How can caregivers or healthcare providers encourage older adults who are fearful of falling to start and stick with a regular exercise routine to improve balance and strength?	100.0	0.0	100	few_shot
