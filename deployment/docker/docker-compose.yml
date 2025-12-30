@@ -17,6 +17,8 @@ services:
       - VLLM_API_KEY=${VLLM_API_KEY:-token-abc123}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     restart: always
+    networks:
+      - clarigen_net
 
   frontend:
     build:
@@ -35,3 +37,13 @@ services:
     depends_on:
       - api
     restart: always
+    networks:
+      - clarigen_net
+
+networks:
+  clarigen_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.100.0/24
