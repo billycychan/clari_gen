@@ -2,9 +2,18 @@ import streamlit as st
 import requests
 import pandas as pd
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent.parent / '.env'
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+else:
+    load_dotenv()
 
 # Configuration
-API_URL = os.getenv("API_URL", "http://localhost:8000/v1")
+API_URL = os.getenv("API_URL", "http://localhost:8370/v1")
 
 # Get the project root directory (two levels up from this file)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
