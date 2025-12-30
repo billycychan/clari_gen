@@ -11,13 +11,25 @@ services:
     env_file:
       - ../../.env
     environment:
-      - SMALL_MODEL_URL=${SMALL_MODEL_URL:-http://130.113.68.24:8368/v1}
-      - LARGE_MODEL_URL=${LARGE_MODEL_URL:-http://130.113.68.24:8369/v1}
+      - SMALL_MODEL_URL=${SMALL_MODEL_URL:-http://tunnel:8368/v1}
+      - LARGE_MODEL_URL=${LARGE_MODEL_URL:-http://tunnel:8369/v1}
       - VLLM_API_KEY=${VLLM_API_KEY:-token-abc123}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     restart: always
+    depends_on:
+      - tunnel
     networks:
       - clarigen_net
+
+  tunnel:
+    image: alpine:latest
+    container_name: clari_gen_tunnel
+    command: sh -c "apk add --no-cache openssh-client && ssh -4 -o StrictHostKeyChecking=no -N -L 0.0.0.0:8368:localhost:8368 -L 0.0.0.0:8369:localhost:8369 chanc187@grace.cas.mcmaster.ca"
+    volumes:
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+    networks:
+      - clarigen_net
+    restart: always
 
   frontend:
     build:
