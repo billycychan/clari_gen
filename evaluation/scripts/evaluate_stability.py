@@ -8,9 +8,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 import glob
 
-from clari_gen.clients import SmallModelClient
-from clari_gen.prompts import BinaryDetectionPrompt
-from clari_gen.utils.logger import setup_logger
+from core.clari_gen.clients import SmallModelClient
+from core.clari_gen.prompts import BinaryDetectionPrompt
+from core.clari_gen.utils.logger import setup_logger
 
 # Setup logging
 logger = setup_logger(__name__)

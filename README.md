@@ -8,101 +8,194 @@ ClariGen is a multi-model pipeline for detecting ambiguous queries and generatin
 - **Query Reformulation:** Reformulates the original query based on the user's response.
 - **Interactive Confirmation:** Allows users to review and confirm the reformulated query.
 - **Flexible Strategies:** Supports multiple prompting strategies for clarification (Standard, Chain-of-Thought, Vanilla).
-- **Interactive CLI and Web UI:** Run interactively in the terminal or via a Streamlit web app.
+- **Interactive Web UI:** Run interactively via a Streamlit web app.
 - **API Access:** FastAPI backend for programmatic access.
 
-## Installation
-1. **Clone the repository:**
-   ```bash
-   git clone <repo-url>
-   cd clari_gen
-   ```
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. **(Optional) Install in editable mode:**
-   ```bash
-   pip install -e .
-   ```
+## Project Structure
 
-### Model Servers (vLLM)
-Before running the system, you need to start the vLLM model servers. A script is provided to manage this:
+The project is organized into clearly separated components:
+
+```
+clari_gen/
+├── core/                          # Core library
+│   ├── clari_gen/                # Main package
+│   │   ├── orchestrator/         # Pipeline orchestration
+│   │   ├── clients/              # LLM client interfaces
+│   │   ├── models/               # Data models & schemas
+│   │   ├── prompts/              # Prompt templates
+│   │   ├── utils/                # Utilities & logging
+│   │   └── config.py             # Configuration
+│   ├── setup.py
+│   ├── requirements.txt
+│   └── README.md
+│
+├── apps/                          # Applications
+│   ├── cli/                      # Command-line interface
+│   ├── api/                      # FastAPI backend
+│   └── frontend/                 # Streamlit web UI
+│
+├── evaluation/                    # Evaluation scripts & datasets
+│   ├── scripts/                  # Evaluation scripts
+│   ├── results/                  # Results
+│   ├── data/                     # Datasets
+│   └── README.md
+│
+├── deployment/                    # Deployment configs
+│   ├── docker/                   # Docker files
+│   └── README.md
+│
+├── llm_hosting/                   # LLM server management
+│   ├── serve_models.sh
+│   ├── stop_models.sh
+│   └── README.md
+│
+├── docs/                          # Documentation
+│   └── ARCHITECTURE.md
+│
+└── tests/                         # Tests
+```
+
+See component-specific READMEs for detailed documentation:
+- [Core Library](core/README.md)
+- [CLI Application](apps/cli/README.md)
+- [API Application](apps/api/README.md)
+- [Frontend Application](apps/frontend/README.md)
+- [Evaluation](evaluation/README.md)
+- [Deployment](deployment/README.md)
+- [LLM Hosting](llm_hosting/README.md)
+- [Environment Configuration](docs/ENVIRONMENT.md)
+
+## Configuration
+
+ClariGen uses environment variables for configuration. 
+
+**Quick setup:**
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
+
+See the [Environment Configuration Guide](docs/ENVIRONMENT.md) for detailed information about all available settings.
+
+**Key variables:**
+- `SMALL_MODEL_URL` - Small model server URL (default: `http://localhost:8368/v1`)
+- `LARGE_MODEL_URL` - Large model server URL (default: `http://localhost:8369/v1`)
+- `API_URL` - API backend URL for frontend (default: `http://localhost:8370/v1`)
+- `LOG_LEVEL` - Logging level (default: `INFO`)
+- `CLARIFICATION_STRATEGY` - Strategy: `at_standard`, `at_cot`, or `vanilla`
+
+
+## Installation
+
+### 1. Install Core Library
 
 ```bash
-cd server
+cd core
+pip install -e .
+```
+
+### 2. Install Component Dependencies
+
+For specific components, install their requirements:
+
+```bash
+# API
+pip install -r apps/api/requirements.txt
+
+# Frontend
+pip install -r apps/frontend/requirements.txt
+
+# Evaluation
+pip install -r evaluation/requirements.txt
+
+# LLM Hosting
+pip install -r llm_hosting/requirements.txt
+```
+
+## Quick Start
+
+### 1. Start Model Servers (vLLM)
+
+Before running the system, start the vLLM model servers:
+
+```bash
+cd llm_hosting
 ./serve_models.sh
 ```
 
-This will start:
+This starts:
 - **Llama 3.1 8B** on port 8368
 - **Llama 3.3 70B FP8** on port 8369
 
-To stop the servers:
+See [LLM Hosting README](llm_hosting/README.md) for details.
+
+### 2. Run Applications
+
+**CLI (Interactive):**
 ```bash
-./stop_servers.sh
+python -m apps.cli
 ```
 
-### API (FastAPI)
-The backend API handles the orchestration of the ambiguity pipeline.
-
+**CLI (Batch):**
 ```bash
-uvicorn clari_gen.api.main:app --port 8000 --reload
+python -m apps.cli --query "Who won the championship?"
 ```
 
-### Web UI (Streamlit)
-The Streamlit interface provides a user-friendly way to interact with the system.
-
+**API Server:**
 ```bash
-streamlit run clari_gen/frontend/app.py --server.port 8501 
+uvicorn apps.api.main:app --host 0.0.0.0 --port 8370
 ```
 
-### CLI
-Run the main interface in interactive mode:
+**Web UI:**
 ```bash
-python -m clari_gen
+streamlit run apps/frontend/app.py --server.port 8501
 ```
 
-Process a single query:
+See component READMEs for detailed usage instructions.
+
+## Docker Deployment
+
 ```bash
-python -m clari_gen --query "Who won the championship?"
+cd deployment/docker
+docker-compose up -d
 ```
 
-Process with a specific clarification strategy (at_standard, at_cot, or vanilla):
+This starts:
+- API on port 8370
+- Frontend on port 8371
+
+See [Deployment README](deployment/README.md) for details.
+
+## Evaluation
+
+Run evaluation scripts to test system performance:
+
 ```bash
-python -m clari_gen --query "..." --clarification-strategy at_cot
+cd evaluation
+python scripts/evaluate_ambiguity_classification.py --dataset data/ambignq_preprocessed.tsv
 ```
 
-Test model server connections:
-```bash
-python -m clari_gen --test
-```
+See [Evaluation README](evaluation/README.md) for all available evaluation scripts.
 
-## Project Structure
-- `clari_gen/` - Main package
-  - `ARCHITECTURE.md` - System architecture and flow diagrams
-  - `main.py` - CLI entry point
-  - `config.py` - Configuration management
-  - `orchestrator/ambiguity_pipeline.py` - Main pipeline logic
-  - `clients/` - Model client interfaces
-  - `frontend/app.py` - Streamlit web app
-  - `api/main.py` - FastAPI backend
-  - `models/` - Data models and schemas
-  - `prompts/` - Prompt templates for LLMs
-  - `utils/` - Utilities and logging
-- `eval/` - Evaluation scripts and results
-- `data/` - Example datasets
-- `tests/` - Unit and integration tests
+## Architecture
+
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system architecture and flow diagrams.
 
 ## Requirements
-See `requirements.txt` for all dependencies. Key packages:
-- openai, vllm, fastapi, streamlit, torch, pandas, requests
+
+- Python >= 3.8
+- vLLM >= 0.6.0 (for model serving)
+- See component-specific `requirements.txt` files for dependencies
 
 ## Contributing
+
 Contributions are welcome! Please open issues or pull requests.
 
 ## License
+
 [MIT License](LICENSE)
 
 ## Contact
+
 For questions or collaboration, contact the project author or open an issue.
+

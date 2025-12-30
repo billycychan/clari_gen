@@ -12,13 +12,13 @@ from typing import List, Dict, Any
 import pandas as pd
 from tqdm import tqdm
 
-# Add the project root to the path so we can import clari_gen
+# Add the project root to the path so we can import core.clari_gen
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from clari_gen.clients.large_model_client import LargeModelClient
-from clari_gen.prompts.clarification_generation.at_cot import ClarificationATCoTPrompt
-from clari_gen.prompts.clarification_generation.at_standard import ClarificationATStandardPrompt
-from clari_gen.prompts.clarification_generation.vanilla import ClarificationVanillaPrompt
+from core.clari_gen.clients.large_model_client import LargeModelClient
+from core.clari_gen.prompts.clarification_generation.at_cot import ClarificationATCoTPrompt
+from core.clari_gen.prompts.clarification_generation.at_standard import ClarificationATStandardPrompt
+from core.clari_gen.prompts.clarification_generation.vanilla import ClarificationVanillaPrompt
 
 # Configure logging
 logging.basicConfig(

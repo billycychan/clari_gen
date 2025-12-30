@@ -1,0 +1,12 @@
+# Frontend Requirements
+
+# Core library (install via: pip install -e ../../core)
+
+# Streamlit web framework
+streamlit>=1.25.0
+
+# HTTP client
+requests>=2.31.0
+
+# Data handling
+pandas>=2.0.0
