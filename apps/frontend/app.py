@@ -17,7 +17,8 @@ API_URL = os.getenv("API_URL", "http://localhost:8370/v1")
 
 # Get the project root directory (two levels up from this file)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-QUERY_FILE = os.path.join(PROJECT_ROOT, "evaluation", "results", "real-queries.tsv")
+DEFAULT_QUERY_FILE = os.path.join(PROJECT_ROOT, "evaluation", "results", "real-queries.tsv")
+QUERY_FILE = os.getenv("QUERY_FILE", DEFAULT_QUERY_FILE)
 
 st.set_page_config(page_title="Clarification Module Demo", layout="wide")
 

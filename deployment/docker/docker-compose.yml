@@ -33,6 +33,7 @@ services:
       # Determines where the Streamlit server (backend) looks for the API
       # Using internal docker service name 'api'
       - API_URL=${API_URL:-http://api:8370/v1}
+      - QUERY_FILE=${QUERY_FILE:-/app/evaluation/results/real-queries.tsv}
     depends_on:
       - api
     restart: always
