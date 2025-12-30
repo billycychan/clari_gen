@@ -130,17 +130,6 @@ This starts:
 See [LLM Hosting README](llm_hosting/README.md) for details.
 
 ### 2. Run Applications
-
-**CLI (Interactive):**
-```bash
-python -m apps.cli
-```
-
-**CLI (Batch):**
-```bash
-python -m apps.cli --query "Who won the championship?"
-```
-
 **API Server:**
 ```bash
 uvicorn apps.api.main:app --host 0.0.0.0 --port 8370
@@ -191,9 +180,6 @@ See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system architecture and
 
 Contributions are welcome! Please open issues or pull requests.
 
-## License
-
-[MIT License](LICENSE)
 
 ## Contact
 
