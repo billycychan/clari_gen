@@ -2,7 +2,18 @@
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+from dotenv import load_dotenv
 from .utils.logger import setup_logger
+
+# Load environment variables from .env file
+# Look for .env in project root (3 levels up from this file)
+env_path = Path(__file__).parent.parent.parent.parent / '.env'
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+else:
+    # Try loading from current directory
+    load_dotenv()
 
 
 @dataclass

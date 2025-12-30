@@ -4,9 +4,9 @@ import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 import time
-from clari_gen.clients import SmallModelClient
-from clari_gen.prompts import BinaryDetectionPrompt
-from clari_gen.utils.logger import setup_logger
+from core.clari_gen.clients import SmallModelClient
+from core.clari_gen.prompts import BinaryDetectionPrompt
+from core.clari_gen.utils.logger import setup_logger
 
 # Setup logging
 logger = setup_logger(__name__)

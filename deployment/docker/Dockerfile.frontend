@@ -1,0 +1,26 @@
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy core requirements and install
+COPY core/requirements.txt ./core/requirements.txt
+
+# Install any needed packages specified in requirements.txt
+# cache mount helps speed up rebuilding
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r core/requirements.txt
+
+# Copy the core library and apps
+COPY core/ ./core/
+COPY apps/ ./apps/
+
+# Install the core package in editable mode
+RUN pip install -e ./core
+
+# Expose port for Streamlit
+EXPOSE 8371
+
+# Default command placeholder, will be overridden by docker-compose
+CMD ["streamlit", "run", "apps/frontend/app.py", "--server.port", "8371", "--server.address", "0.0.0.0"]

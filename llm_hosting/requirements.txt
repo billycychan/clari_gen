@@ -1,0 +1,10 @@
+# LLM Hosting Requirements
+
+# vLLM for model serving
+vllm>=0.6.0
+
+# OpenAI client for testing
+openai>=1.0.0
+
+# Utilities
+requests>=2.31.0

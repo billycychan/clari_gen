@@ -2,8 +2,8 @@ import logging
 from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 
-from clari_gen.orchestrator.ambiguity_pipeline import AmbiguityPipeline
-from clari_gen.api.schemas import (
+from core.clari_gen.orchestrator.ambiguity_pipeline import AmbiguityPipeline
+from apps.api.schemas import (
     QueryRequest,
     ClarifyRequest,
     ConfirmRequest,

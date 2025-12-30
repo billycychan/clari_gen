@@ -50,9 +50,9 @@ from tqdm import tqdm
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from clari_gen.clients import SmallModelClient
-from clari_gen.prompts import BinaryDetectionPrompt
-from clari_gen.utils.logger import setup_logger
+from core.clari_gen.clients import SmallModelClient
+from core.clari_gen.prompts import BinaryDetectionPrompt
+from core.clari_gen.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 

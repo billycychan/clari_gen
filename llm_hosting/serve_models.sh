@@ -50,7 +50,8 @@ CMD_8B="CUDA_VISIBLE_DEVICES=0 vllm serve meta-llama/Llama-3.1-8B-Instruct \
   --max-model-len 4096"
 
 run_server "meta-llama/Llama-3.1-8B-Instruct" 8368 "$LOG_DIR/llama-3.1-8b.log" "$CMD_8B" &
-LLAMA_3_1_PID=$!
+LLAMA_3_1_MONITOR_PID=$!
+echo "$LLAMA_3_1_MONITOR_PID" > "$LOG_DIR/llama-3.1-8b-monitor.pid"
 
 # Wait for first model to initialize
 sleep 10
@@ -67,8 +68,12 @@ CMD_70B="CUDA_VISIBLE_DEVICES=2,3 vllm serve nvidia/Llama-3.3-70B-Instruct-FP8 \
   --max-num-seqs 64"
 
 run_server "nvidia/Llama-3.3-70B-Instruct-FP8" 8369 "$LOG_DIR/llama-3.3-70b-fp8.log" "$CMD_70B" &
-LLAMA_3_3_PID=$!
-echo "Started nvidia/Llama-3.3-70B-Instruct-FP8 (PID: $LLAMA_3_3_PID)"
+LLAMA_3_3_MONITOR_PID=$!
+echo "$LLAMA_3_3_MONITOR_PID" > "$LOG_DIR/llama-3.3-70b-fp8-monitor.pid"
+echo "Started nvidia/Llama-3.3-70B-Instruct-FP8 (Monitor PID: $LLAMA_3_3_MONITOR_PID)"
+
+echo "Servers running. Use 'stop_models.sh' to stop."
+wait
 
 # Save PIDs to a file for easy management
 echo "$LLAMA_3_1_PID" > "$LOG_DIR/llama-3.1-8b.pid"

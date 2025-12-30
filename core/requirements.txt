@@ -1,0 +1,11 @@
+# ClariGen Core Library Requirements
+
+# Core LLM client dependencies
+openai>=1.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+
+# Optional: for development
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
