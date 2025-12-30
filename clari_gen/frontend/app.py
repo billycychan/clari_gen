@@ -4,7 +4,7 @@ import pandas as pd
 import os
 
 # Configuration
-API_URL = "http://localhost:8000/v1"
+API_URL = os.getenv("API_URL", "http://localhost:8000/v1")
 QUERY_FILE = "/u40/chanc187/source/clari_gen/real-queries.tsv"
 
 st.set_page_config(page_title="Clarification Module Demo", layout="wide")

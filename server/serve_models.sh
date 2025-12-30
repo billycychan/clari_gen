@@ -14,33 +14,59 @@ echo "Starting vLLM servers for multiple models..."
 sleep 2
 
 # Start meta-llama/Llama-3.1-8B-Instruct on port 8368 (single GPU 0 only)
-echo "Starting meta-llama/Llama-3.1-8B-Instruct on port 8368..."
-CUDA_VISIBLE_DEVICES=0 nohup vllm serve meta-llama/Llama-3.1-8B-Instruct \
+# Function to run a model server with auto-restart
+run_server() {
+    local MODEL_NAME=$1
+    local PORT=$2
+    local LOG_FILE=$3
+    local CMD=$4
+    
+    echo "Starting $MODEL_NAME on port $PORT..."
+    
+    while true; do
+        # Run the command
+        eval "$CMD > \"$LOG_FILE\" 2>&1" &
+        PID=$!
+        echo "$PID" > "${LOG_FILE%.*}.pid"
+        echo "Started $MODEL_NAME (PID: $PID)"
+        
+        # Wait for the process to exit
+        wait $PID
+        EXIT_CODE=$?
+        
+        echo "Server $MODEL_NAME (PID: $PID) exited with code $EXIT_CODE."
+        echo "Restarting in 5 seconds..."
+        sleep 5
+    done
+}
+
+# Start meta-llama/Llama-3.1-8B-Instruct on port 8368 (single GPU 0 only)
+CMD_8B="CUDA_VISIBLE_DEVICES=0 vllm serve meta-llama/Llama-3.1-8B-Instruct \
+  --host 0.0.0.0 \
   --port 8368 \
   --dtype auto \
   --api-key token-abc123 \
   --gpu-memory-utilization 0.7 \
-  --max-model-len 4096 \
-  > "$LOG_DIR/llama-3.1-8b.log" 2>&1 &
+  --max-model-len 4096"
 
+run_server "meta-llama/Llama-3.1-8B-Instruct" 8368 "$LOG_DIR/llama-3.1-8b.log" "$CMD_8B" &
 LLAMA_3_1_PID=$!
-echo "Started meta-llama/Llama-3.1-8B-Instruct (PID: $LLAMA_3_1_PID)"
 
-# Wait for first model to initialize and claim its GPU
-sleep 5
+# Wait for first model to initialize
+sleep 10
 
 # Start nvidia/Llama-3.3-70B-Instruct-FP8 on port 8369 (GPUs 2,3 only)
-echo "Starting nvidia/Llama-3.3-70B-Instruct-FP8 on port 8369..."
-CUDA_VISIBLE_DEVICES=2,3 nohup vllm serve nvidia/Llama-3.3-70B-Instruct-FP8 \
+CMD_70B="CUDA_VISIBLE_DEVICES=2,3 vllm serve nvidia/Llama-3.3-70B-Instruct-FP8 \
+  --host 0.0.0.0 \
   --port 8369 \
   --dtype auto \
   --api-key token-abc123 \
   --tensor-parallel-size 2 \
   --gpu-memory-utilization 0.8 \
   --max-model-len 4096 \
-  --max-num-seqs 64 \
-  > "$LOG_DIR/llama-3.3-70b-fp8.log" 2>&1 &
+  --max-num-seqs 64"
 
+run_server "nvidia/Llama-3.3-70B-Instruct-FP8" 8369 "$LOG_DIR/llama-3.3-70b-fp8.log" "$CMD_70B" &
 LLAMA_3_3_PID=$!
 echo "Started nvidia/Llama-3.3-70B-Instruct-FP8 (PID: $LLAMA_3_3_PID)"
 

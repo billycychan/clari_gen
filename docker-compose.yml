@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: clari_gen_api
+    command: uvicorn clari_gen.api.main:app --host 0.0.0.0 --port 8370
+    ports:
+      - "8370:8370"
+    environment:
+      - SMALL_MODEL_URL=http://130.113.68.24:8368/v1
+      - LARGE_MODEL_URL=http://130.113.68.24:8369/v1
+      - VLLM_API_KEY=token-abc123
+      - LOG_LEVEL=INFO
+    restart: always
+
+  frontend:
+    build: .
+    container_name: clari_gen_frontend
+    command: streamlit run clari_gen/frontend/app.py --server.port 8371 --server.address 0.0.0.0
+    ports:
+      - "8371:8371"
+    environment:
+      # Determines where the Streamlit server (backend) looks for the API
+      # Using internal docker service name 'api'
+      - API_URL=http://api:8370/v1
+    depends_on:
+      - api
+    restart: always
