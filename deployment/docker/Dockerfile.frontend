@@ -4,13 +4,14 @@ FROM python:3.10-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy core requirements and install
+# Copy core and Frontend requirements and install
 COPY core/requirements.txt ./core/requirements.txt
+COPY apps/frontend/requirements.txt ./apps/frontend/requirements.txt
 
 # Install any needed packages specified in requirements.txt
 # cache mount helps speed up rebuilding
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r core/requirements.txt
+    pip install -r core/requirements.txt -r apps/frontend/requirements.txt
 
 # Copy the core library and apps
 COPY core/ ./core/
