@@ -26,7 +26,37 @@ ClariGen is a multi-model pipeline for detecting ambiguous queries and generatin
    pip install -e .
    ```
 
-## Usage
+### Model Servers (vLLM)
+Before running the system, you need to start the vLLM model servers. A script is provided to manage this:
+
+```bash
+cd server
+./serve_models.sh
+```
+
+This will start:
+- **Llama 3.1 8B** on port 8368
+- **Llama 3.3 70B FP8** on port 8369
+
+To stop the servers:
+```bash
+./stop_servers.sh
+```
+
+### API (FastAPI)
+The backend API handles the orchestration of the ambiguity pipeline.
+
+```bash
+uvicorn clari_gen.api.main:app --port 8000 --reload
+```
+
+### Web UI (Streamlit)
+The Streamlit interface provides a user-friendly way to interact with the system.
+
+```bash
+streamlit run clari_gen/frontend/app.py --server.port 8501 
+```
+
 ### CLI
 Run the main interface in interactive mode:
 ```bash
@@ -46,22 +76,6 @@ python -m clari_gen --query "..." --clarification-strategy at_cot
 Test model server connections:
 ```bash
 python -m clari_gen --test
-```
-Or use the installed command:
-```bash
-clari-gen
-```
-
-### Web UI
-Start the Streamlit app:
-```bash
-streamlit run clari_gen/frontend/app.py
-```
-
-### API
-Start the FastAPI server:
-```bash
-uvicorn clari_gen.api.main:app --reload
 ```
 
 ## Project Structure
