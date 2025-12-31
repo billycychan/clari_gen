@@ -1,5 +1,7 @@
 # ClariGen FastAPI Backend
 
+[← Back to Root](../../README.md)
+
 REST API service for the ClariGen ambiguity detection and clarification system.
 
 ## Installation

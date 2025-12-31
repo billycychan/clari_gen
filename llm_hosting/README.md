@@ -1,5 +1,7 @@
 # vLLM Model Serving Scripts
 
+[← Back to Root](../README.md)
+
 This directory contains scripts to serve multiple LLMs using vLLM's OpenAI-compatible server.
 
 ## Models

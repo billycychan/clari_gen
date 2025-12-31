@@ -1,6 +1,11 @@
 # ClariGen Streamlit Frontend
 
+[← Back to Root](../../README.md)
+
 Interactive web UI for the ClariGen ambiguity detection and clarification system.
+
+> [!IMPORTANT]
+> The [FastAPI Backend](../api/README.md) must be running for the frontend to function.
 
 ## Installation
 

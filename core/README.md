@@ -1,5 +1,7 @@
 # ClariGen Core Library
 
+[← Back to Root](../../README.md)
+
 This is the core library for ClariGen, containing the fundamental components for ambiguity detection and clarification.
 
 ## Components
