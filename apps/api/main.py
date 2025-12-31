@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 from contextlib import asynccontextmanager
 
 from core.clari_gen.orchestrator.ambiguity_pipeline import AmbiguityPipeline
+from core.clari_gen.config import Config
 from apps.api.schemas import (
     QueryRequest,
     ClarifyRequest,
@@ -25,7 +26,9 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing AmbiguityPipeline...")
     # Initialize with default settings.
     # In a real app, you might want to load config from env vars.
-    pipeline = AmbiguityPipeline()
+    config = Config()
+    logger.info(f"Initializing with API URL: {config.app.api_url}")
+    pipeline = AmbiguityPipeline(config=config)
     yield
     logger.info("Shutting down...")
 

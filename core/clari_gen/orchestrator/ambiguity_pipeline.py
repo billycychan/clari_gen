@@ -12,6 +12,7 @@ from ..prompts import (
     QueryReformulationPrompt,
 )
 from ..prompts.clarification_generation.vanilla import ClarificationVanillaPrompt
+from ..config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -21,38 +22,65 @@ class AmbiguityPipeline:
 
     def __init__(
         self,
+        config: Optional[Config] = None,
         small_model_client: Optional[SmallModelClient] = None,
         large_model_client: Optional[LargeModelClient] = None,
-        max_clarification_attempts: int = 3,
-        clarification_strategy: str = "at_standard",
+        max_clarification_attempts: Optional[int] = None,
+        clarification_strategy: Optional[str] = None,
     ):
         """Initialize the ambiguity pipeline.
 
         Args:
-            small_model_client: Client for the 8B model (binary ambiguity detection)
-            large_model_client: Client for the 70B model (clarification with classification, validation, reformulation)
-            max_clarification_attempts: Maximum number of times to ask for clarification
-            clarification_strategy: Strategy for clarification generation ("at_standard" or "at_cot")
+            config: Configuration object. If None, loads defaults from env.
+            small_model_client: Optional override for SmallModelClient
+            large_model_client: Optional override for LargeModelClient
+            max_clarification_attempts: Optional override for max attempts
+            clarification_strategy: Optional override for strategy
         """
-        self.small_model = small_model_client or SmallModelClient()
-        self.large_model = large_model_client or LargeModelClient()
-        self.max_clarification_attempts = max_clarification_attempts
-        self.clarification_strategy = clarification_strategy
+        self.config = config or Config()
+        
+        # Use provided args or fall back to config
+        model_config = self.config.model
+        pipeline_config = self.config.pipeline
+
+        self.small_model = small_model_client or SmallModelClient(
+            base_url=model_config.small_model_base_url,
+            model_name=model_config.small_model_name,
+            api_key=model_config.api_key
+        )
+        self.large_model = large_model_client or LargeModelClient(
+            base_url=model_config.large_model_base_url,
+            model_name=model_config.large_model_name,
+            api_key=model_config.api_key
+        )
+        
+        self.max_clarification_attempts = (
+            max_clarification_attempts 
+            if max_clarification_attempts is not None 
+            else pipeline_config.max_clarification_attempts
+        )
+        
+        strategy = (
+            clarification_strategy 
+            if clarification_strategy is not None 
+            else pipeline_config.clarification_strategy
+        )
+        self.clarification_strategy = strategy
 
         # Select the appropriate prompt class based on strategy
-        if clarification_strategy == "at_cot":
+        if strategy == "at_cot":
             self.clarification_prompt_class = ClarificationATCoTPrompt
-        elif clarification_strategy == "at_standard":
+        elif strategy == "at_standard":
             self.clarification_prompt_class = ClarificationATStandardPrompt
-        elif clarification_strategy == "vanilla":
+        elif strategy == "vanilla":
             self.clarification_prompt_class = ClarificationVanillaPrompt
         else:
             raise ValueError(
-                f"Invalid clarification strategy: {clarification_strategy}. Must be 'at_standard', 'at_cot', or 'vanilla'"
+                f"Invalid clarification strategy: {strategy}. Must be 'at_standard', 'at_cot', or 'vanilla'"
             )
 
         logger.info(
-            f"Initialized AmbiguityPipeline with clarification strategy: {clarification_strategy}"
+            f"Initialized AmbiguityPipeline with clarification strategy: {self.clarification_strategy}"
         )
 
     def process_query(

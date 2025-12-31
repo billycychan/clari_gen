@@ -63,7 +63,21 @@ class PipelineConfig:
                 "CLARIFICATION_STRATEGY", cls.clarification_strategy
             ),
             log_level=os.getenv("LOG_LEVEL", cls.log_level),
-            log_file=os.getenv("LOG_FILE", cls.log_file),
+            log_file=os.getenv("LOG_FILE", cls.log_file) or None,
+        )
+
+
+@dataclass
+class AppConfig:
+    """Configuration for the application."""
+
+    api_url: str = "http://localhost:8370/v1"
+
+    @classmethod
+    def from_env(cls):
+        """Load configuration from environment variables."""
+        return cls(
+            api_url=os.getenv("API_URL", cls.api_url),
         )
 
 
@@ -73,6 +87,7 @@ class Config:
     def __init__(self):
         self.model = ModelConfig.from_env()
         self.pipeline = PipelineConfig.from_env()
+        self.app = AppConfig.from_env()
         self.logger = self._setup_logger()
 
     def _setup_logger(self):

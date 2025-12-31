@@ -20,18 +20,22 @@ class LargeModelClient(BaseVLLMClient):
     DEFAULT_MAX_TOKENS = 512
 
     def __init__(
-        self, base_url: str = "http://localhost:8369/v1", api_key: str = "token-abc123"
+        self,
+        base_url: str = "http://localhost:8369/v1",
+        api_key: str = "token-abc123",
+        model_name: str = "nvidia/Llama-3.3-70B-Instruct-FP8",
     ):
         """Initialize the large model client.
 
         Args:
             base_url: The base URL of the 70B model server
             api_key: API key for authentication
+            model_name: Name of the model
         """
         super().__init__(
             base_url=base_url,
             api_key=api_key,
-            model_name="nvidia/Llama-3.3-70B-Instruct-FP8",
+            model_name=model_name,
         )
 
     def generate_clarification(
