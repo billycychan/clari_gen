@@ -1,6 +1,6 @@
 # Evaluation: Clarification Generation
 
-This folder contains the evaluation script for clarifying question generation using BERTScore.
+[← Back to Evaluation](../README.md)
 
 Run the evaluation script:
 

@@ -1,6 +1,8 @@
 # ClariGen Evaluation Scripts
 
-Scripts for evaluating the ambiguity detection and clarification system.
+[← Back to Root](../README.md)
+
+This directory contains scripts and datasets for evaluating the performance of the ClariGen ambiguity detection and clarification system.
 
 ## Setup
 

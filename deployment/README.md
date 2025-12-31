@@ -1,142 +1,71 @@
 # ClariGen Deployment
 
-Docker deployment configurations for ClariGen.
+[← Back to Root](../README.md)
 
-## Prerequisites
+This directory contains configurations for deploying ClariGen using Docker. It supports both local-only setups and configurations that connect to remote models via secure SSH tunnels.
 
-- Docker and Docker Compose installed
-- vLLM model servers running (see `../llm_hosting/README.md`)
+## Deployment Options
 
-## Quick Start
+### 1. Local Deployment
+Ideal for development when you have model servers running on your local machine or an accessible network.
 
-From the project root:
+### 2. Remote Deployment with SSH Tunnel
+Required when models (Llama-3.1-8B, Llama-3.3-70B) are hosted on a remote server (e.g., `grace.cas.mcmaster.ca`) that requires SSH access.
+
+> [!IMPORTANT]
+> For SSH Tunneling, you must follow the [SSH Setup Guide](docker/README.md) to configure your `id_rsa` key.
+
+---
+
+## Quick Start (Docker Compose)
+
+1. **Configure Environment**:
+   Ensure your `.env` file in the root is set up correctly (see [.env.example](../.env.example)).
+
+2. **Start Services**:
+   ```bash
+   cd deployment/docker
+   docker-compose up -d
+   ```
+
+3. **Verify**:
+   - **Frontend**: [http://localhost:8371](http://localhost:8371)
+   - **API Backend**: [http://localhost:8370](http://localhost:8370)
+
+---
+
+## Service Overview
+
+### [FastAPI Backend](docker/Dockerfile.api)
+The brain of the operation, handling the ambiguity detection and clarification pipeline.
+- **Port**: 8370
+- **Health Check**: `GET /health`
+
+### [Streamlit Frontend](docker/Dockerfile.frontend)
+Interactive dashboard for testing and visualizing the system.
+- **Port**: 8371
+
+### [SSH Tunnel](docker/README.md) (Optional)
+A dedicated container that establishes an SSH tunnel to forward remote model ports to the local Docker network.
+
+---
+
+## Common Commands
 
 ```bash
-cd deployment/docker
-docker-compose up -d
-```
-
-This will start:
-- **API Service** on port 8370
-- **Frontend Service** on port 8371
-
-## Configuration
-
-### Environment Variables
-
-Edit `docker-compose.yml` to configure:
-
-```yaml
-environment:
-  - SMALL_MODEL_URL=http://130.113.68.24:8368/v1
-  - LARGE_MODEL_URL=http://130.113.68.24:8369/v1
-  - VLLM_API_KEY=token-abc123
-  - LOG_LEVEL=INFO
-```
-
-Update model URLs to point to your vLLM servers.
-
-## Services
-
-### API (port 8370)
-FastAPI backend service handling ambiguity detection pipeline.
-
-**Dockerfile:** `Dockerfile.api`
-
-**Endpoints:**
-- `http://localhost:8370/v1/query` - Process queries
-- `http://localhost:8370/v1/clarify` - Submit clarifications
-- `http://localhost:8370/v1/confirm` - Confirm reformulations
-- `http://localhost:8370/health` - Health check
-
-### Frontend (port 8371)
-Streamlit web UI for interactive usage.
-
-**Dockerfile:** `Dockerfile.frontend`
-
-**Access:** Open `http://localhost:8371` in your browser
-C
-## Docker Commands
-
-### Start services
-```bash
-docker-compose up -d
-```
-
-### View logs
-```bash
-# All services
+# View all logs
 docker-compose logs -f
 
-# Specific service
+# Logs for a specific service
 docker-compose logs -f api
-docker-compose logs -f frontend
-```
 
-### Stop services
-```bash
-docker-compose down
-```
+# Restart everything
+docker-compose down && docker-compose up -d
 
-### Rebuild images
-```bash
+# Rebuild images after code changes
 docker-compose build --no-cache
-docker-compose up -d
 ```
 
-### Restart a service
-```bash
-docker-compose restart api
-docker-compose restart frontend
-```
+## Management & Troubleshooting
 
-## Development Mode
-
-For development with hot reload:
-
-1. Mount source code as volume in `docker-compose.yml`:
-```yaml
-services:
-  api:
-    volumes:
-      - ../../core:/app/core
-      - ../../apps:/app/apps
-```
-
-2. Enable reload in commands:
-```yaml
-command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8370 --reload
-```
-
-## Troubleshooting
-
-### Container won't start
-```bash
-# Check container logs
-docker-compose logs api
-docker-compose logs frontend
-
-# Check container status
-docker-compose ps
-```
-
-### Cannot connect to model servers
-Ensure the `SMALL_MODEL_URL` and `LARGE_MODEL_URL` are reachable from within the Docker containers. Use host IPs, not `localhost`.
-
-### Port conflicts
-If ports 8370 or 8371 are in use, modify the port mappings in `docker-compose.yml`:
-```yaml
-ports:
-  - "9000:8370"  # Map to different host port
-```
-
-## Production Deployment
-
-For production:
-
-1. Use production-ready web server for API (e.g., gunicorn with uvicorn workers)
-2. Add nginx reverse proxy
-3. Enable HTTPS with SSL certificates
-4. Configure proper logging and monitoring
-5. Set up health checks and auto-restart policies
-6. Use Docker secrets for sensitive environment variables
+See the [Docker README](docker/README.md) for detailed troubleshooting steps regarding SSH connections, port mapping, and volume management.
