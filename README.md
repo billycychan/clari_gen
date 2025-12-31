@@ -181,7 +181,20 @@ See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed system architecture and
 Contributions are welcome! Please open issues or pull requests.
 
 
-## Contact
+## License
 
-For questions or collaboration, contact the project author or open an issue.
+Copyright © 2025, Wireless System Research Group (WiSeR), McMaster University.
+This work is licensed under the terms of a Creative Commons Attribution–
+NonCommercial 4.0 International License (CC BY-NC 4.0).
+
+You are free to:
+- **Share** — copy and redistribute the material in any medium or format.
+- **Adapt** — remix, transform, and build upon the material.
+
+Under the following terms:
+- **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. Credit should be given as: “Wireless System Research Group (WiSeR), McMaster University. Used with permission.”
+- **NonCommercial** — You may not use the material for commercial purposes.
+- **Permission for Commercial Use** — Any commercial use requires prior written permission from Rong Zheng (rzheng@mcmaster.ca).
+
+**Disclaimer**: This code and related artifacts are provided “as is,” without warranties or conditions of any kind, either express or implied.
 
