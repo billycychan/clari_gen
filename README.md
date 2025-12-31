@@ -30,7 +30,6 @@ clari_gen/
 │   └── README.md
 │
 ├── apps/                          # Applications
-│   ├── cli/                      # Command-line interface
 │   ├── api/                      # FastAPI backend
 │   └── frontend/                 # Streamlit web UI
 │
@@ -57,7 +56,6 @@ clari_gen/
 
 See component-specific READMEs for detailed documentation:
 - [Core Library](core/README.md)
-- [CLI Application](apps/cli/README.md)
 - [API Application](apps/api/README.md)
 - [Frontend Application](apps/frontend/README.md)
 - [Evaluation](evaluation/README.md)
