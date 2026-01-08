@@ -82,7 +82,6 @@ Reads queries from `real-queries.tsv` and outputs results.
 Evaluation datasets are located in `evaluation/data/`:
 - `ambignq_preprocessed.tsv` - AmbigNQ dataset for evaluation
 - `clariq_preprocessed.tsv` - ClariQ dataset
-- `gpt_4_1_balanced_strict.tsv` - GPT-4.1 labeled dataset
 
 ## Results
 

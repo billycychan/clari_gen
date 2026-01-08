@@ -532,9 +532,6 @@ Examples:
   # Evaluate on AmbigNQ dataset
   python evaluate_ambiguity_classification.py --dataset ambignq
   
-  # Evaluate on GPT-4.1 balanced dataset
-  python evaluate_ambiguity_classification.py --dataset gpt41
-  
   # Evaluate on all datasets
   python evaluate_ambiguity_classification.py --dataset all
   
@@ -548,9 +545,9 @@ Examples:
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=["clariq", "ambignq", "gpt41", "all"],
+        choices=["clariq", "ambignq", "all"],
         default="clariq",
-        help="Dataset to evaluate on: 'clariq', 'ambignq', 'gpt41', or 'all' (default: clariq)",
+        help="Dataset to evaluate on: 'clariq', 'ambignq', or 'all' (default: clariq)",
     )
     parser.add_argument(
         "--data-path",
@@ -601,7 +598,6 @@ Examples:
         dataset_name = (
             Path(args.data_path)
             .stem.replace("_preprocessed", "")
-            .replace("gpt_4_1_balanced_strict", "gpt41")
         )
         datasets_to_eval.append((dataset_name, args.data_path))
     elif args.dataset == "all":
@@ -612,15 +608,11 @@ Examples:
         datasets_to_eval.append(
             ("ambignq", str(project_root / "data" / "ambignq_preprocessed.tsv"))
         )
-        datasets_to_eval.append(
-            ("gpt41", str(project_root / "data" / "gpt_4_1_balanced_strict.tsv"))
-        )
     else:
         # Single dataset
         dataset_files = {
             "clariq": project_root / "data" / "clariq_preprocessed.tsv",
             "ambignq": project_root / "data" / "ambignq_preprocessed.tsv",
-            "gpt41": project_root / "data" / "gpt_4_1_balanced_strict.tsv",
         }
         datasets_to_eval.append((args.dataset, str(dataset_files[args.dataset])))
 
